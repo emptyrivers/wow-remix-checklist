@@ -1,0 +1,17 @@
+{
+  "Lua.diagnostics.globals": [
+    "SlashCmdList",
+    "ReloadUI",
+    "InterfaceOptionsFrame_OpenToCategory",
+    "ScrollUtil",
+    "CreateTreeDataProvider",
+    "CreateScrollBoxListTreeListView",
+    "CreateAnchor",
+    "DEMON_HUNTER_RESTRICTED_BOOST_IS_TOO_LOW_LEVEL",
+    "ITEM_SPELL_KNOWN",
+    "TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN"
+  ],
+  "Lua.diagnostics.disable": [
+    "undefined-field"
+  ]
+}

@@ -1,0 +1,73 @@
+<!-- Remix Weapon Tracker is marked with CC0 1.0 Universal. To view a copy of this license, visit http://creativecommons.org/publicdomain/zero/1.0 -->
+<Ui
+  xmlns="http://www.blizzard.com/wow/ui/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.blizzard.com/wow/ui/ https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd"
+>
+  <Include file="mixins.lua" />
+  <Frame
+    name="RemixWeaponsFrameTemplate"
+    inherits="DefaultPanelTemplate"
+    mixin="RemixWeaponsFrameMixin"
+    toplevel="true"
+    enableMouse="true"
+    clampedToScreen="true"
+    movable="true"
+    frameStrata="DIALOG"
+    parent="UIParent"
+    virtual="true"
+  >
+    <Anchors>
+      <Anchor point="CENTER" />
+    </Anchors>
+    <Scripts>
+      <OnLoad method="OnLoad" />
+      <!-- <OnEvent method="OnEvent" /> -->
+    </Scripts>
+    <Size x="450" y="300" />
+    <Frames>
+      <Button 
+        parentKey="CloseButton"
+        inherits="UIPanelCloseButtonDefaultAnchors"
+      />
+      <Frame
+        parentKey="ScrollBox"
+        inherits="WowScrollBoxList"
+      >
+        <Anchors>
+          <Anchor point="TOPLEFT" relativePoint="TOPLEFT" x="10" y="-22" />
+          <Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" x="-2" y="1" />
+        </Anchors>
+      </Frame>
+      <EventFrame
+        parentKey="ScrollBar"
+        inherits="MinimalScrollBar"
+      >
+        <Anchors>
+          <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeKey="$parent.ScrollBox"/>
+          <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMRIGHT" relativeKey="$parent.ScrollBox"/>
+        </Anchors>
+      </EventFrame>
+    </Frames>
+  </Frame>
+  <Frame
+    name="RemixWeaponItemLeafTemplate"
+    mixin="RemixWeaponItemLeafMixin"
+    virtual="true"
+  >
+
+  </Frame>
+  <Frame
+    name="RemixWeaponItemTypeNodeTemplate"
+    mixin="RemixWeaponItemTypeNodeMixin"
+    virtual="true"
+  >
+    
+  </Frame>
+  <Frame
+    name="RemixWeaponDropLocNodeTemplate"
+    mixin="RemixWeaponDropLocNodeMixin"
+    virtual="true"
+  >
+  </Frame>
+</Ui>

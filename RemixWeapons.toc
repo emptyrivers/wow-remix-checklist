@@ -1,0 +1,10 @@
+# Remix Weapon Tracker is marked with CC0 1.0 Universal. To view a copy of this license, visit http://creativecommons.org/publicdomain/zero/1.0
+## Interface: 100207
+## Title: Remix Weapon Tracker
+## Notes: Tracks weapon progress for collecting MoP Remix Weapon appearances
+## Author: rivers
+## Version: 1.0.0
+
+weapons.lua
+ui.xml
+core.lua

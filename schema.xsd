@@ -1,0 +1,9 @@
+<!-- Remix Weapon Tracker is marked with CC0 1.0 Universal. To view a copy of this license, visit http://creativecommons.org/publicdomain/zero/1.0 -->
+<xs:schema
+  xmlns="http://www.blizzard.com/wow/ui/"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  xmlns:ui="http://www.blizzard.com/wow/ui/"
+  targetNamespace="http://www.blizzard.com/wow/ui/"
+>
+  <xs:include schemaLocation="https://raw.githubusercontent.com/Meorawr/wow-ui-schema/main/UI.xsd" />
+</xs:schema>
