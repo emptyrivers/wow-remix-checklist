@@ -22,7 +22,8 @@
     </Anchors>
     <Scripts>
       <OnLoad method="OnLoad" />
-      <!-- <OnEvent method="OnEvent" /> -->
+      <OnMouseDown method="OnMouseDown" />
+      <OnMouseUp method="OnMouseUp" />
     </Scripts>
     <Size x="450" y="300" />
     <Frames>
