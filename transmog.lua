@@ -142,6 +142,7 @@ local class_to_equip = {
       [equip.FIST] = true,
       [equip.POLEARM] = true,
       [equip.OFF_HAND] = true,
+      [equip.SHIELD] = true,
    },
    PRIEST = {
       [equip.CLOTH] = true,
@@ -172,6 +173,7 @@ local class_to_equip = {
       [equip.FIST] = true,
       [equip.POLEARM] = true,
       [equip.OFF_HAND] = true,
+      [equip.SHIELD] = true,
    },
    WARLOCK = {
       [equip.CLOTH] = true,
@@ -193,6 +195,7 @@ local class_to_equip = {
       [equip.DAGGER] = true,
       [equip.FIST] = true,
       [equip.POLEARM] = true,
+      [equip.SHIELD] = true,
    },
 }
 addon.enum.class_to_equip = class_to_equip
