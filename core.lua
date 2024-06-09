@@ -4,60 +4,49 @@
 local name = ...
 
 ---@class ns
----@field data CheckListData
+---@field tree TreeNode
 local ns = select(2, ...)
 
----@class CheckListData
----@field weapons table<equip, table<itemID, WeaponCheckListItem>>
----@field appearances table<vendor, table<itemID, AppearanceCheckListItem>>
----@field toys table<itemID, CheckListItem>
----@field mounts table<itemID, CheckListItem>
+---@type RemixChecklistFrame
+local RemixChecklistFrame
 
----@alias vendor
----| '"world"'
----| '"dungeon"'
----| '"lfr"'
----| '"normal"'
----| '"heroic"'
----| '"bones"'
-
----@class CheckListItem
----@field link string
----@field has boolean
----@field cost number
-
----@class WeaponCheckListItem : CheckListItem
----@field location string
----@field cost nil
-
----@class AppearanceCheckListItem : CheckListItem
----@field remaining number
-
-
----@type RemixWeaponsFrame
-local RemixWeaponsFrame
-
-SLASH_REMIXWEAPONS1 = "/remixweapons"
-SlashCmdList["REMIXWEAPONS"] = function()
-   if not RemixWeaponsFrame then
-      RemixWeaponsFrame = CreateFrame("Frame", "RemixWeaponsFrame", UIParent, "RemixWeaponsFrameTemplate") --[[@as RemixWeaponsFrame]]
+SLASH_REMIXCHECKLIST1 = "/remixchecklist"
+SLASH_REMIXCHECKLIST2 = "/remixcl"
+SLASH_REMIXCHECKLIST3 = "/rmc"
+SlashCmdList["REMIXCHECKLIST"] = function()
+   if not RemixChecklistFrame then
+      RemixChecklistFrame = CreateFrame("Frame", "RemixChecklistFrame", UIParent, "RemixChecklistFrameTemplate") --[[@as RemixChecklistFrame]]
    else
-      RemixWeaponsFrame:SetShown(not RemixWeaponsFrame:IsShown())
+      RemixChecklistFrame:SetShown(not RemixChecklistFrame:IsShown())
    end
+   --@debug@
+   DevTool:AddData(RemixChecklistFrame, "RemixChecklistFrame")
+   --@end-debug@
    if not ns.loaded then
-      ns:LoadItemData(function() RemixWeaponsFrame:Populate() end)
+      ns:LoadItemData(function()
+         --@debug@
+         DevTool:AddData(ns.tree, "RemixChecklistTree")
+         --@end-debug@
+         RemixChecklistFrame:Populate()
+      end)
    end
 end
 
----@return boolean?, number?
+---@return boolean?, number?, number?
 local function hasEnsemble(itemID)
    local setID = C_Item.GetItemLearnTransmogSet(itemID)
    if not setID then return end
    local setItems = C_Transmog.GetAllSetAppearancesByID(setID)
    if not setItems then return end
    local count = 0
+   local slots = 0
+   local slotsSeen = {}
    local slotsUnlearned = {}
    for i, itemData in ipairs(setItems) do
+      if not slotsSeen[itemData.invSlot] then
+         slotsSeen[itemData.invSlot] = true
+         slots = slots + 1
+      end
       if not C_TransmogCollection.PlayerHasTransmogItemModifiedAppearance(itemData.itemModifiedAppearanceID) then
          if not slotsUnlearned[itemData.invSlot] then
             count = count + 1
@@ -70,26 +59,29 @@ local function hasEnsemble(itemID)
          slotsUnlearned[itemData.invSlot] = nil
       end
    end
-   return next(slotsUnlearned) == nil, count
+   return next(slotsUnlearned) == nil, count, slots
 end
 
 function ns:CreateItems()
    self.items = {}
-   for _, ids in pairs(ns.weapons) do
-      for id in pairs(ids) do
-         table.insert(self.items, Item:CreateFromItemID(id))
+   for i, types in ipairs(ns.weapons) do
+      for j, weapon in ipairs(types.items) do
+         if not weapon or not weapon.id then
+            print("Invalid weapon", i, j, weapon and weapon.id)
+         end
+         table.insert(self.items, Item:CreateFromItemID(weapon.id))
       end
    end
-   for _, ids in pairs(ns.appearances) do
-      for _, data in pairs(ids) do
-         table.insert(self.items, Item:CreateFromItemID(data[1]))
+   for _, vendor in ipairs(ns.appearances) do
+      for _, appearance in ipairs(vendor.items) do
+         table.insert(self.items, Item:CreateFromItemID(appearance.id))
       end
    end
-   for _, mountInfo in pairs(ns.mounts) do
-      table.insert(self.items, Item:CreateFromItemID(mountInfo[1]))
+   for _, toy in pairs(ns.toys) do
+      table.insert(self.items, Item:CreateFromItemID(toy.id))
    end
-   for _, toyInfo in pairs(ns.toys) do
-      table.insert(self.items, Item:CreateFromItemID(toyInfo[1]))
+   for _, mount in ipairs(ns.mounts) do
+      table.insert(self.items, Item:CreateFromItemID(mount.id))
    end
 end
 
@@ -100,66 +92,215 @@ function ns:LoadItemData(callback)
       self:CreateItems()
    end
    local loader = ContinuableContainer:Create()
-   DevTool:AddData(self.items, 'items')
    loader:AddContinuables(self.items)
    loader:ContinueOnLoad(function()
-      self.data = {
-         weapons = {},
-         appearances = {},
-         toys = {},
-         mounts = {},
+      ---@type TreeNode
+      local tree = {
+         template = "dummy",
+         summary = {
+            title = "Remix CheckList",
+            collected = 0,
+            total = 0,
+            bronze = 0,
+         },
+         children = {}
       }
-      for equip, ids in pairs(ns.weapons) do
-         self.data.weapons[equip] = {}
-         for id, loc in pairs(ids) do
-            self.data.weapons[equip][id] = {
-               link = select(2, C_Item.GetItemInfo(id)),
-               has = C_TransmogCollection.PlayerHasTransmog(id),
-               location = loc
+      local weaponsNode = {
+         children = {},
+         template = "RemixChecklistTreeNodeTemplate",
+         summary = {
+            title = "Weapons",
+            collected = 0,
+            total = 0,
+         }
+      }
+      table.insert(tree.children, weaponsNode)
+      for i = 1, #ns.weapons do
+         local weaponType = ns.weapons[i]
+         ---@type TreeNode
+         local equipNode = {
+            children = {},
+            template = "RemixChecklistTreeNodeTemplate",
+            summary = {
+               title = ns.enum.equipName[weaponType.type],
+               collected = 0,
+               total = 0,
             }
-         end
-      end
-      for vendor, ids in pairs(ns.appearances) do
-         self.data.appearances[vendor] = {}
-         for _, appearanceInfo in pairs(ids) do
-            if vendor == "bones" then
-               self.data.appearances[vendor][appearanceInfo[1]] = {
-                  link = select(2, C_Item.GetItemInfo(appearanceInfo[1])),
-                  has = C_TransmogCollection.PlayerHasTransmog(appearanceInfo[1]),
-                  cost = appearanceInfo[2],
-                  remaining = appearanceInfo[3],
+         }
+         table.insert(weaponsNode.children, equipNode)
+         for j = 1, #weaponType.items do
+            local weapon = weaponType.items[j]
+            local has = C_TransmogCollection.PlayerHasTransmog(weapon.id)
+            ---@type LeafNode
+            local leaf = {
+               template = "RemixChecklistLeafNodeWeaponTemplate",
+               summary = {
+                  link = select(2, C_Item.GetItemInfo(weapon.id)),
+                  has = has,
+                  loc = weapon.loc,
                }
-            else
-               local has, remaining = hasEnsemble(appearanceInfo[1])
-               self.data.appearances[vendor][appearanceInfo[1]] = {
-                  link = select(2, C_Item.GetItemInfo(appearanceInfo[1])),
-                  cost = appearanceInfo[2],
-                  has = has or false,
-                  remaining = remaining or 0,
-               }
+            }
+            table.insert(equipNode.children, leaf)
+            tree.summary.total = tree.summary.total + 1
+            weaponsNode.summary.total = weaponsNode.summary.total + 1
+            equipNode.summary.total = equipNode.summary.total + 1
+            if has then
+               tree.summary.collected = tree.summary.collected + 1
+               weaponsNode.summary.collected = weaponsNode.summary.collected + 1
+               equipNode.summary.collected = equipNode.summary.collected + 1
             end
          end
       end
-      for _, toyInfo in pairs(ns.toys) do
-         self.data.toys[toyInfo[1]] = {
-            link = select(2, C_Item.GetItemInfo(toyInfo[1])),
-            has = PlayerHasToy(toyInfo[1]),
-            cost = toyInfo[2],
+      ---@type TreeNode
+      local appearancesNode = {
+         children = {},
+         template = "RemixChecklistTreeNodeTemplate",
+         summary = {
+            title = "Appearances",
+            collected = 0,
+            total = 0,
+            bronze = 0,
          }
-      end
-      for _, mountInfo in pairs(ns.mounts) do
-         local mountID = C_MountJournal.GetMountFromItem(mountInfo[1]) --[[@as number]]
-         if mountID then
-            self.data.mounts[mountInfo[1]] = {
-               link = select(2, C_Item.GetItemInfo(mountInfo[1])),
-               has = select(11, C_MountJournal.GetMountInfoByID(mountID)),
-               cost = mountInfo[2],
+      }
+      table.insert(tree.children, appearancesNode)
+      for i = 1, #ns.appearances do
+         local vendor = ns.appearances[i]
+         ---@type TreeNode
+         local vendorNode = {
+            children = {},
+            template = "RemixChecklistTreeNodeTemplate",
+            summary = {
+               title = ns.enum.vendorName[vendor.vendor],
+               collected = 0,
+               total = 0,
+               bronze = 0,
             }
+         }
+         table.insert(appearancesNode.children, vendorNode)
+         if vendor.vendor == "bones" then
+            vendorNode.summary.title = "Bones of Mannorroth"
+         end
+         for j = 1, #vendor.items do
+            local appearance = vendor.items[j]
+            ---@type LeafNode
+            local leaf
+            if vendor.vendor == "bones" then
+               leaf = {
+                  template = "RemixChecklistLeafNodeBoneTemplate",
+                  summary = {
+                     link = select(2, C_Item.GetItemInfo(appearance.id)),
+                     has = C_TransmogCollection.PlayerHasTransmog(appearance.id),
+                     bones = appearance.bones,
+                     bronze = appearance.cost,
+                  }
+               }
+            else
+               local has, remaining, slots = hasEnsemble(appearance.id)
+               leaf = {
+                  template = "RemixChecklistLeafNodeAppearanceTemplate",
+                  summary = {
+                     link = select(2, C_Item.GetItemInfo(appearance.id)),
+                     has = has,
+                     bronze = appearance.cost,
+                     haveSlots = slots - remaining,
+                     slots = slots
+                  }
+               }
+            end
+            table.insert(vendorNode.children, leaf)
+            tree.summary.total = tree.summary.total + 1
+            appearancesNode.summary.total = appearancesNode.summary.total + 1
+            vendorNode.summary.total = vendorNode.summary.total + 1
+            if leaf.summary.has then
+               tree.summary.collected = tree.summary.collected + 1
+               appearancesNode.summary.collected = appearancesNode.summary.collected + 1
+               vendorNode.summary.collected = vendorNode.summary.collected + 1
+            else
+               tree.summary.bronze = tree.summary.bronze + leaf.summary.bronze
+               appearancesNode.summary.bronze = appearancesNode.summary.bronze + leaf.summary.bronze
+               vendorNode.summary.bronze = vendorNode.summary.bronze + leaf.summary.bronze
+            end
          end
       end
-      DevTool:AddData(self.data, 'collection')
+      ---@type TreeNode
+      local toyNode = {
+         children = {},
+         template = "RemixChecklistTreeNodeTemplate",
+         summary = {
+            title = "Toys",
+            collected = 0,
+            total = 0,
+            bronze = 0,
+         }
+      }
+      table.insert(tree.children, toyNode)
+      for i = 1, #ns.toys do
+         local toy = ns.toys[i]
+         ---@type LeafNode
+         local leaf = {
+            template = "RemixChecklistLeafNodeGenericTemplate",
+            summary = {
+               link = select(2, C_Item.GetItemInfo(toy.id)),
+               has = PlayerHasToy(toy.id),
+               bronze = toy.cost,
+            }
+         }
+         table.insert(toyNode.children, leaf)
+         tree.summary.total = tree.summary.total + 1
+         toyNode.summary.total = toyNode.summary.total + 1
+         if leaf.summary.has then
+            tree.summary.collected = tree.summary.collected + 1
+            toyNode.summary.collected = toyNode.summary.collected + 1
+         else
+            tree.summary.bronze = tree.summary.bronze + leaf.summary.bronze
+            toyNode.summary.bronze = toyNode.summary.bronze + leaf.summary.bronze
+         end
+      end
+      ---@type TreeNode
+      local mountNode = {
+         children = {},
+         template = "RemixChecklistTreeNodeTemplate",
+         summary = {
+            title = "Mounts",
+            collected = 0,
+            total = 0,
+            bronze = 0,
+         }
+      }
+      table.insert(tree.children, mountNode)
+      for i = 1, #ns.mounts do
+         local mount = ns.mounts[i]
+         local mountID = C_MountJournal.GetMountFromItem(mount.id) --[[@as number]]
+         if mountID then
+            ---@type LeafNode
+            local leaf = {
+               template = "RemixChecklistLeafNodeGenericTemplate",
+               summary = {
+                  link = select(2, C_Item.GetItemInfo(mount.id)),
+                  has = select(11, C_MountJournal.GetMountInfoByID(mountID)),
+                  bronze = mount.cost,
+               }
+            }
+            table.insert(mountNode.children, leaf)
+            tree.summary.total = tree.summary.total + 1
+            mountNode.summary.total = mountNode.summary.total + 1
+            if leaf.summary.has then
+               tree.summary.collected = tree.summary.collected + 1
+               mountNode.summary.collected = mountNode.summary.collected + 1
+            else
+               tree.summary.bronze = tree.summary.bronze + leaf.summary.bronze
+               mountNode.summary.bronze = mountNode.summary.bronze + leaf.summary.bronze
+            end
+         end
+      end
+      self.tree = tree
       if callback then
          callback()
       end
    end)
 end
+
+--@debug@
+DevTool:AddData(ns, "RemixChecklist")
+_G.RemixChecklistPrivate = ns
+--@end-debug@

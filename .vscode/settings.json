@@ -9,7 +9,9 @@
     "CreateAnchor",
     "DEMON_HUNTER_RESTRICTED_BOOST_IS_TOO_LOW_LEVEL",
     "ITEM_SPELL_KNOWN",
-    "TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN"
+    "TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN",
+    "HandleModifiedItemClick",
+    "SetItemRef"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field"

@@ -2,13 +2,13 @@
 ---@class ns
 local ns = select(2, ...)
 
----@class RemixWeaponsFrame : Frame
+---@class RemixChecklistFrame : Frame
 ---@field ScrollBox Frame
 ---@field ScrollBar Frame
 ---@field CloseButton Button
-RemixWeaponsFrameMixin = {}
+RemixChecklistFrameMixin = {}
 
-function RemixWeaponsFrameMixin:OnLoad()
+function RemixChecklistFrameMixin:OnLoad()
    self.dataProvider = CreateTreeDataProvider()
    self.scrollView = CreateScrollBoxListTreeListView()
    self.dataProvider:CollapseAll()
@@ -26,85 +26,210 @@ function RemixWeaponsFrameMixin:OnLoad()
    ScrollUtil.AddManagedScrollBarVisibilityBehavior(self.ScrollBox, self.ScrollBar, withBar, withoutBar)
    
    
-   local function Initializer(frame, node)
-      frame:SetText(node:GetData().ButtonText)
-      frame:SetScript("OnClick", function()
-         node:ToggleCollapsed()
-      end)
+   local function nodeInitializer(frame, node)
+      frame:Init(node)
    end
    
+   local function leafInitializer(frame, node)
+      frame:Init(node)
+   end
+
    local function CustomFactory(factory, node)
-      factory("UIPanelButtonTemplate", Initializer)
+      if node:GetData().children then
+         factory("RemixChecklistTreeNodeTemplate", nodeInitializer)
+      else
+         factory(node:GetData().template, leafInitializer)
+      end
    end
    
    self.scrollView:SetElementFactory(CustomFactory)
    
 end
 
-function RemixWeaponsFrameMixin:Populate()
+function RemixChecklistFrameMixin:Populate()
+   -- todo: maybe someday (next remix season?), consider being more judicious than "eh just yeet everything and start from scratch"
    self.dataProvider:Flush()
-   local weaponNode = self.dataProvider:Insert({
-      ButtonText = "Weapons",
-      topLevel = true,
-   })
-
-   for equip, checkList in pairs(ns.data.weapons) do
-      local equipNode = weaponNode:Insert({
-         ButtonText = ns.enum.equipName[equip] or ("Invalid Equip type %q"):format(equip or "UNKNOWN"),
-         topLevel = true,
-         key = equip
-      })
-      for id, checkListItem in pairs(checkList) do
-         equipNode:Insert({
-            ButtonText = checkListItem.link .. " " .. (checkListItem.has and ":)" or ":(") .. " " .. checkListItem.location,
-            key = id
-         })
-      end
-   end
-   local appearanceNode = self.dataProvider:Insert({
-      ButtonText = "Appearances",
-      topLevel = true,
-   })
-   for vendor, checkList in pairs(ns.data.appearances) do
-      local equipNode = appearanceNode:Insert({
-         ButtonText = vendor,
-         key = vendor
-      })
-      for id, checkListItem in pairs(checkList) do
-         equipNode:Insert({
-            ButtonText = checkListItem.link .. " " .. (checkListItem.has and ":)" or ":(") .. " " .. checkListItem.remaining .. " " .. checkListItem.cost,
-            key = id
-         })
-      end
-   end
-   local toyNode = self.dataProvider:Insert({
-      ButtonText = "Toys",
-      topLevel = true,
-   })
-   for id, checkListItem in pairs(ns.data.toys) do
-      toyNode:Insert({
-         ButtonText = checkListItem.link .. " " .. (checkListItem.has and ":)" or ":(") .. " " .. checkListItem.cost,
-         key = id
-      })
-   end
-   local mountNode = self.dataProvider:Insert({
-      ButtonText = "Mounts",
-      topLevel = true,
-   })
-   for id, checkListItem in pairs(ns.data.mounts) do
-      mountNode:Insert({
-         ButtonText = checkListItem.link .. " " .. (checkListItem.has and ":)" or ":(") .. " " .. checkListItem.cost,
-         key = id
-      })
+   self:SetTitleFormatted("Remix Checklist - %d/%d collected, %d Bronze left", ns.tree.summary.collected, ns.tree.summary.total, ns.tree.summary.bronze)
+   for _, data in ipairs(ns.tree.children) do
+      self.dataProvider:Insert(data)
    end
    self.dataProvider:CollapseAll()
 end
 
 
-function RemixWeaponsFrameMixin:OnMouseDown()
+function RemixChecklistFrameMixin:OnMouseDown()
    self:StartMoving()
 end
 
-function RemixWeaponsFrameMixin:OnMouseUp()
+function RemixChecklistFrameMixin:OnMouseUp()
    self:StopMovingOrSizing()
+end
+
+---@class RemixCheckListTreeNodeMixin : Frame
+---@field title FontString
+---@field progress FontString
+RemixCheckListTreeNodeMixin = {}
+
+function RemixCheckListTreeNodeMixin:OnLoad()
+   self:SetBackdrop({
+      bgFile = "Interface\\Buttons\\WHITE8x8"
+   })
+   self:SetBackdropColor(0.2, 0.2, 0.2, 0)
+end
+
+function RemixCheckListTreeNodeMixin:OnEnter()
+   self:SetBackdropColor(0.7, 0.7, 0.7, 0.5)
+end
+
+function RemixCheckListTreeNodeMixin:OnLeave()
+   self:SetBackdropColor(0, 0, 0, 0)
+end
+
+function RemixCheckListTreeNodeMixin:Init(node)
+   self.node = node
+   local data = node:GetData()
+   self.title:SetText(data.summary.title)
+   if data.summary.bronze then
+      self.bronze:SetFormattedText("%d|T4638724:0|t", data.summary.bronze)
+   else
+      self.bronze:SetText("")
+   end
+   self.progress:SetFormattedText("%d/%d (%.1f%%)",
+      data.summary.collected,
+      data.summary.total,
+      data.summary.collected / data.summary.total * 100
+   )
+end
+
+---@param collapsed boolean
+function RemixCheckListTreeNodeMixin:SetCollapsed(collapsed)
+   self.collapsed = collapsed
+   if self.node:GetData().children and self.node:GetSize() ~= #self.node:GetData().children then
+      for _, child in ipairs(self.node:GetData().children) do
+         -- annoying that TreeDataProvider doesn't support initial collapsed state
+         -- at least we can pass 3rd arg to suppress invalidation until after all children are added
+         self.node:Insert(child)--[[ :SetCollapsed(true, nil, true) ]]
+      end
+   end
+   self.node:SetCollapsed(self.collapsed)
+   -- self.node:Invalidate()
+end
+
+---@class RemixCheckListCollapseAndExpandButtonMixin : CheckButton
+RemixCheckListCollapseAndExpandButtonMixin = { };
+
+function RemixCheckListCollapseAndExpandButtonMixin:OnLoad()
+	self.orientation = 1
+	self.expandDirection = 0
+
+	self:SetChecked(true)
+	self:UpdateOrientation()
+end
+
+function RemixCheckListCollapseAndExpandButtonMixin:OnClick()
+	self:GetParent():SetCollapsed(self:GetChecked());
+	self:UpdateOrientation();
+end
+
+function RemixCheckListCollapseAndExpandButtonMixin:UpdateOrientation()
+	local isChecked = self:GetChecked()
+	local rotation;
+
+	if self.orientation == 0 then
+		local leftRotation = math.pi;
+		local rightRotation = 0;
+		if self.expandDirection == 0 then
+			rotation = isChecked and leftRotation or rightRotation;
+		else
+			rotation = isChecked and rightRotation or leftRotation;
+		end
+
+		self:SetSize(15, 30);
+	else
+		local downRotation = 3 * math.pi / 2;
+		local upRotation = math.pi / 2;
+		if self.expandDirection == 0 then
+			rotation = isChecked and downRotation or upRotation;
+		else
+			rotation = isChecked and upRotation or downRotation;
+		end
+
+		self:SetSize(30, 15);
+	end
+
+	self:GetNormalTexture():SetRotation(rotation);
+	self:GetHighlightTexture():SetRotation(rotation);
+	self:GetPushedTexture():SetRotation(rotation);
+end
+
+---@class RemixCheckListLeafNodeBaseMixin : Frame
+---@field itemLink FontString
+RemixCheckListLeafNodeBaseMixin = {}
+
+function RemixCheckListLeafNodeBaseMixin:OnLoad()
+   self:SetHyperlinksEnabled(true)
+   self:SetBackdrop({
+      bgFile = "Interface\\Buttons\\WHITE8x8"
+   })
+   self:SetBackdropColor(0.2, 0.2, 0.2, 0)
+end
+
+function RemixCheckListLeafNodeBaseMixin:OnEnter()
+   self:SetBackdropColor(0.7, 0.7, 0.7, 0.5)
+end
+
+function RemixCheckListLeafNodeBaseMixin:OnLeave()
+   self:SetBackdropColor(0, 0, 0, 0)
+end
+
+function RemixCheckListLeafNodeBaseMixin:Init(node)
+   self.icon:SetTexture(node:GetData().summary.has and "Interface\\AddOns\\RemixCheckList\\assets\\check.png" or "Interface\\AddOns\\RemixCheckList\\assets\\x.png")
+   self.itemLink:SetText(node:GetData().summary.link)
+end
+
+function RemixCheckListLeafNodeBaseMixin:OnHyperlinkClick(link, _, button)
+   -- a truncated hyperlink (pretty common given the width of the itemLink fontstring)
+   -- sets second arg to empty string, which seems to break some item ref functions e.g. ctrl click mount links
+   -- since not-truncated hyperlinks seem to set the second arg to the full text, we'll just do that ourselves
+   SetItemRef(link, self.itemLink:GetText(), button)
+end
+
+---@class RemixCheckListLeafNodeGenericMixin : RemixCheckListLeafNodeBaseMixin
+---@field bronze FontString
+RemixCheckListLeafNodeGenericMixin = {}
+
+function RemixCheckListLeafNodeGenericMixin:Init(node)
+   RemixCheckListLeafNodeBaseMixin.Init(self, node)
+   self.bronze:SetFormattedText("%d|T4638724:0|t", node:GetData().summary.bronze)
+end
+
+---@class RemixCheckListLeafNodeAppearanceMixin : RemixCheckListLeafNodeBaseMixin
+---@field bronze FontString
+---@field slots FontString
+RemixCheckListLeafNodeAppearanceMixin = {}
+
+function RemixCheckListLeafNodeAppearanceMixin:Init(node)
+   RemixCheckListLeafNodeBaseMixin.Init(self, node)
+   self.bronze:SetFormattedText("%d|T4638724:0|t", node:GetData().summary.bronze)
+   self.slots:SetFormattedText("%d/%d", node:GetData().summary.haveSlots, node:GetData().summary.slots)
+end
+
+---@class RemixCheckListLeafNodeBoneMixin : RemixCheckListLeafNodeBaseMixin
+---@field bones FontString
+---@field bronze FontString
+RemixCheckListLeafNodeBoneMixin = {}
+
+function RemixCheckListLeafNodeBoneMixin:Init(node)
+   RemixCheckListLeafNodeBaseMixin.Init(self, node)
+   self.bones:SetFormattedText("%d|T1508519:0|t", node:GetData().summary.bones)
+   self.bronze:SetFormattedText("%d|T4638724:0|t", node:GetData().summary.bronze)
+end
+
+---@class RemixCheckListLeafNodeCurrencyMixin : RemixCheckListLeafNodeBaseMixin
+---@field location FontString
+RemixCheckListLeafNodeWeaponMixin = {}
+
+function RemixCheckListLeafNodeWeaponMixin:Init(node)
+   RemixCheckListLeafNodeBaseMixin.Init(self, node)
+   self.location:SetText(node:GetData().summary.loc)
 end

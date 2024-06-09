@@ -6,9 +6,9 @@
 >
   <Include file="mixins.lua" />
   <Frame
-    name="RemixWeaponsFrameTemplate"
-    inherits="DefaultPanelTemplate"
-    mixin="RemixWeaponsFrameMixin"
+    name="RemixChecklistFrameTemplate"
+    inherits="DefaultPanelFlatTemplate"
+    mixin="RemixChecklistFrameMixin"
     toplevel="true"
     enableMouse="true"
     clampedToScreen="true"
@@ -52,23 +52,237 @@
     </Frames>
   </Frame>
   <Frame
-    name="RemixWeaponItemLeafTemplate"
-    mixin="RemixWeaponItemLeafMixin"
+    name="RemixChecklistTreeNodeTemplate"
+    mixin="RemixCheckListTreeNodeMixin"
+    inherits="BackdropTemplate"
     virtual="true"
   >
+    <Size y="22" />
+    <Scripts>
+      <OnLoad method="OnLoad" />
+      <OnEnter method="OnEnter" />
+      <OnLeave method="OnLeave" />
+    </Scripts>
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="title"
+          font="GameFontNormal"
+          justifyH="LEFT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="LEFT" x="30" />
+          </Anchors>
+        </FontString>
+        <FontString
+          parentKey="progress"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-90" />
+          </Anchors>
+        </FontString>
+        <FontString
+          parentKey="bronze"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-10" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Frames>
+      <!-- lifted from Blizzard_BuffFrame -->
+      <CheckButton parentKey="CollapseAndExpandButton" mixin="RemixCheckListCollapseAndExpandButtonMixin">
+				<Size x="15" y="30"/>
+				<Anchors>
+					<Anchor point="LEFT"/>
+				</Anchors>
+				<Scripts>
+					<OnClick method="OnClick"/>
+					<OnLoad method="OnLoad"/>
+				</Scripts>
+				<NormalTexture parentKey="NormalTexture" atlas="bag-arrow" useAtlasSize="false">
+					<Size x="10" y="16"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</NormalTexture>
+				<PushedTexture parentKey="PushedTexture" atlas="bag-arrow" useAtlasSize="false">
+					<Size x="10" y="16"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</PushedTexture>
+				<HighlightTexture parentKey="HighlightTexture" atlas="bag-arrow" alpha=".4" alphaMode="ADD" useAtlasSize="false">
+					<Size x="10" y="16"/>
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</HighlightTexture>
+			</CheckButton>
+    </Frames>
+  </Frame>
 
-  </Frame>
   <Frame
-    name="RemixWeaponItemTypeNodeTemplate"
-    mixin="RemixWeaponItemTypeNodeMixin"
+    name="RemixChecklistLeafNodeBaseTemplate"
+    mixin="RemixCheckListLeafNodeBaseMixin"
+    inherits="BackdropTemplate"
     virtual="true"
   >
-    
+    <Size y="22" />
+    <Layers>
+      <Layer level="ARTWORK">
+        <Texture
+          parentKey="icon"
+        >
+          <Anchors>
+            <Anchor point="LEFT" x="10" />
+          </Anchors>
+          <Size x="16" y="16" />
+        </Texture>
+        <FontString
+          parentKey="itemLink"
+          font="GameFontNormal"
+          justifyH="LEFT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Size x="200" />
+          <Anchors>
+            <Anchor point="LEFT" x="26" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Scripts>
+      <OnLoad method="OnLoad" />
+      <OnEnter method="OnEnter" />
+      <OnLeave method="OnLeave" />
+      <OnHyperlinkClick method="OnHyperlinkClick" />
+    </Scripts>
   </Frame>
+
   <Frame
-    name="RemixWeaponDropLocNodeTemplate"
-    mixin="RemixWeaponDropLocNodeMixin"
+    name="RemixChecklistLeafNodeGenericTemplate"
+    mixin="RemixCheckListLeafNodeGenericMixin"
+    inherits="RemixChecklistLeafNodeBaseTemplate"
     virtual="true"
   >
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="bronze"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-10" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+  </Frame>
+
+  <Frame
+    name="RemixChecklistLeafNodeAppearanceTemplate"
+    mixin="RemixCheckListLeafNodeAppearanceMixin"
+    inherits="RemixChecklistLeafNodeBaseTemplate"
+    virtual="true"
+  >
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="slots"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-90" />
+          </Anchors>
+        </FontString>
+        <FontString
+          parentKey="bronze"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-10" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+  </Frame>
+
+  <Frame
+    name="RemixChecklistLeafNodeBoneTemplate"
+    mixin="RemixCheckListLeafNodeBoneMixin"
+    inherits="RemixChecklistLeafNodeBaseTemplate"
+    virtual="true"
+  >
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="bones"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-90" />
+          </Anchors>
+        </FontString>
+        <FontString
+          parentKey="bronze"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-10" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+  </Frame>
+
+  <Frame
+    name="RemixChecklistLeafNodeWeaponTemplate"
+    mixin="RemixCheckListLeafNodeWeaponMixin"
+    inherits="RemixChecklistLeafNodeBaseTemplate"
+    virtual="true"
+  >
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="location"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-10" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
   </Frame>
 </Ui>
