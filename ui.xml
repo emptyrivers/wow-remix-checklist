@@ -134,6 +134,14 @@
   </Frame>
 
   <Frame
+    name="RemixChecklistTreeNodeWeaponTemplate"
+    mixin="RemixCheckListTreeNodeWeaponMixin"
+    inherits="RemixChecklistTreeNodeTemplate"
+    virtual="true"
+  >
+  </Frame>
+
+  <Frame
     name="RemixChecklistLeafNodeBaseTemplate"
     mixin="RemixCheckListLeafNodeBaseMixin"
     inherits="BackdropTemplate"

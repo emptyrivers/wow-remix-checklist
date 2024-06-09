@@ -120,11 +120,12 @@ function ns:LoadItemData(callback)
          ---@type TreeNode
          local equipNode = {
             children = {},
-            template = "RemixChecklistTreeNodeTemplate",
+            template = "RemixChecklistTreeNodeWeaponTemplate",
             summary = {
                title = ns.enum.equipName[weaponType.type],
                collected = 0,
                total = 0,
+               type = weaponType.type,
             }
          }
          table.insert(weaponsNode.children, equipNode)

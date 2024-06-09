@@ -166,6 +166,19 @@ function RemixCheckListCollapseAndExpandButtonMixin:UpdateOrientation()
 	self:GetPushedTexture():SetRotation(rotation)
 end
 
+---@class RemixCheckListTreeNodeWeaponMixin : RemixCheckListTreeNodeMixin
+RemixCheckListTreeNodeWeaponMixin = {}
+
+function RemixCheckListTreeNodeWeaponMixin:Init(node)
+   RemixCheckListTreeNodeMixin.Init(self, node)
+   local _, class = UnitClass("player")
+   if not ns.enum.class_to_equip[class][node:GetData().summary.type] then
+      self.title:SetTextColor(1, 0, 0)
+   else
+      self.title:SetTextColor(GameFontNormal:GetTextColor())
+   end
+end
+
 ---@class RemixCheckListLeafNodeBaseMixin : Frame
 ---@field itemLink FontString
 RemixCheckListLeafNodeBaseMixin = {}
