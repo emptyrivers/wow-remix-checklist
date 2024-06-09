@@ -1,4 +1,5 @@
 
+
 ---@class ns
 local ns = select(2, ...)
 
@@ -26,20 +27,12 @@ function RemixChecklistFrameMixin:OnLoad()
    ScrollUtil.AddManagedScrollBarVisibilityBehavior(self.ScrollBox, self.ScrollBar, withBar, withoutBar)
    
    
-   local function nodeInitializer(frame, node)
-      frame:Init(node)
-   end
-   
-   local function leafInitializer(frame, node)
+   local function initializer(frame, node)
       frame:Init(node)
    end
 
    local function CustomFactory(factory, node)
-      if node:GetData().children then
-         factory("RemixChecklistTreeNodeTemplate", nodeInitializer)
-      else
-         factory(node:GetData().template, leafInitializer)
-      end
+      factory(node:GetData().template, initializer)
    end
    
    self.scrollView:SetElementFactory(CustomFactory)
@@ -68,6 +61,7 @@ end
 ---@class RemixCheckListTreeNodeMixin : Frame
 ---@field title FontString
 ---@field progress FontString
+---@field CollapseAndExpandButton CheckButton
 RemixCheckListTreeNodeMixin = {}
 
 function RemixCheckListTreeNodeMixin:OnLoad()
@@ -99,6 +93,16 @@ function RemixCheckListTreeNodeMixin:Init(node)
       data.summary.total,
       data.summary.collected / data.summary.total * 100
    )
+   if node.collapsed == nil then
+      -- workaround:
+      -- TreeDataProvider doesn't support initial collapsed state
+      -- fortunately the collapsed field is normally boolean
+      -- except when the node is first created
+      -- so, we just immediately collapse (without invalidating the layout) if node.collapsed == nil
+      node:SetCollapsed(true, nil, true)
+   end
+   self.CollapseAndExpandButton:SetChecked(node:IsCollapsed())
+   self.CollapseAndExpandButton:UpdateOrientation()
 end
 
 ---@param collapsed boolean
@@ -116,7 +120,7 @@ function RemixCheckListTreeNodeMixin:SetCollapsed(collapsed)
 end
 
 ---@class RemixCheckListCollapseAndExpandButtonMixin : CheckButton
-RemixCheckListCollapseAndExpandButtonMixin = { };
+RemixCheckListCollapseAndExpandButtonMixin = { }
 
 function RemixCheckListCollapseAndExpandButtonMixin:OnLoad()
 	self.orientation = 1
@@ -127,39 +131,39 @@ function RemixCheckListCollapseAndExpandButtonMixin:OnLoad()
 end
 
 function RemixCheckListCollapseAndExpandButtonMixin:OnClick()
-	self:GetParent():SetCollapsed(self:GetChecked());
-	self:UpdateOrientation();
+	self:GetParent():SetCollapsed(self:GetChecked())
+	self:UpdateOrientation()
 end
 
 function RemixCheckListCollapseAndExpandButtonMixin:UpdateOrientation()
 	local isChecked = self:GetChecked()
-	local rotation;
+	local rotation
 
 	if self.orientation == 0 then
-		local leftRotation = math.pi;
-		local rightRotation = 0;
+		local leftRotation = math.pi
+		local rightRotation = 0
 		if self.expandDirection == 0 then
-			rotation = isChecked and leftRotation or rightRotation;
+			rotation = isChecked and leftRotation or rightRotation
 		else
-			rotation = isChecked and rightRotation or leftRotation;
+			rotation = isChecked and rightRotation or leftRotation
 		end
 
-		self:SetSize(15, 30);
+		self:SetSize(15, 30)
 	else
-		local downRotation = 3 * math.pi / 2;
-		local upRotation = math.pi / 2;
+		local downRotation = 3 * math.pi / 2
+		local upRotation = math.pi / 2
 		if self.expandDirection == 0 then
-			rotation = isChecked and downRotation or upRotation;
+			rotation = isChecked and downRotation or upRotation
 		else
-			rotation = isChecked and upRotation or downRotation;
+			rotation = isChecked and upRotation or downRotation
 		end
 
-		self:SetSize(30, 15);
+		self:SetSize(30, 15)
 	end
 
-	self:GetNormalTexture():SetRotation(rotation);
-	self:GetHighlightTexture():SetRotation(rotation);
-	self:GetPushedTexture():SetRotation(rotation);
+	self:GetNormalTexture():SetRotation(rotation)
+	self:GetHighlightTexture():SetRotation(rotation)
+	self:GetPushedTexture():SetRotation(rotation)
 end
 
 ---@class RemixCheckListLeafNodeBaseMixin : Frame
