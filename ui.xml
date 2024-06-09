@@ -29,8 +29,43 @@
     <Frames>
       <Button 
         parentKey="CloseButton"
-        inherits="UIPanelCloseButtonDefaultAnchors"
-      />
+        inherits="UIButtonTemplate"
+        frameLevel="510"
+        scale="0.1875"
+      >
+        <!-- combined with scale, this is 24,24 -->
+        <Size x="128" y="128" />
+        <KeyValues>
+          <KeyValue key="buttonArtKit" value="128-RedButton-Exit" type="string" />
+        </KeyValues>
+        <Anchors>
+          <Anchor point="TOPRIGHT" x="-1" />
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            self:GetParent():Hide()
+          </OnClick>
+        </Scripts>
+      </Button>
+      <Button
+        parentKey="RefreshButton"
+        inherits="UIButtonTemplate"
+        frameLevel="510"
+        scale="0.1875"
+      >
+        <Size x="128" y="128" />
+        <KeyValues>
+          <KeyValue key="buttonArtKit" value="128-RedButton-Refresh" type="string" />
+        </KeyValues>
+        <Anchors>
+          <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" relativeKey="$parent.CloseButton"/>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            self:GetParent():Refresh()
+          </OnClick>
+        </Scripts>
+      </Button>
       <Frame
         parentKey="ScrollBox"
         inherits="WowScrollBoxList"

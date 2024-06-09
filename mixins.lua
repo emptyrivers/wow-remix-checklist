@@ -39,10 +39,14 @@ function RemixChecklistFrameMixin:OnLoad()
    
 end
 
+function RemixChecklistFrameMixin:Refresh()
+   ns:LoadItemData(function() self:Populate() end)
+end
+
 function RemixChecklistFrameMixin:Populate()
    -- todo: maybe someday (next remix season?), consider being more judicious than "eh just yeet everything and start from scratch"
    self.dataProvider:Flush()
-   self:SetTitleFormatted("Remix Checklist - %d/%d collected, %d Bronze left", ns.tree.summary.collected, ns.tree.summary.total, ns.tree.summary.bronze)
+   self:SetTitleFormatted("Remix Checklist - %d/%d collected, %d|T4638724:0|t", ns.tree.summary.collected, ns.tree.summary.total, ns.tree.summary.bronze)
    for _, data in ipairs(ns.tree.children) do
       self.dataProvider:Insert(data)
    end
