@@ -13,7 +13,7 @@ function RemixChecklistFrameMixin:OnLoad()
    self.scrollView = CreateScrollBoxListTreeListView()
    self.dataProvider:CollapseAll()
    self.scrollView:SetDataProvider(self.dataProvider)
-
+   self.ScrollBox:SetShadowsShown(false)
    ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, self.scrollView)
    local withBar = {
       CreateAnchor("TOPLEFT", self, "TOPLEFT", 10, -22),
