@@ -4,7 +4,8 @@
 ## Notes: Tracks progress for collecting MoP Remix transmog appearances, mounts & toys.
 ## Author: rivers
 ## Version: 1.0.0
-
+## X-Curse-Project-ID: 1033458
+## X-Wago-ID: 4N2m3ZGL
 
 toys.lua
 mounts.lua
