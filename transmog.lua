@@ -594,7 +594,8 @@ addon.enum.vendorName = {
    lfr = "Aeonicus",
    normal = "Durus",
    heroic = "Pythagorus",
-   bones = "Pythagorus"
+   bones = "Pythagorus",
+   class = "Grandmaster Jakkus",
 }
 
 ---@alias collectionID number
@@ -794,5 +795,33 @@ addon.appearances = {
       { id = 104408, cost = 8000, bones = 2 },
       { id = 104409, cost = 8000, bones = 2 },
       { id = 224459, cost = 38500, bones = 20 },
+   }},
+   { vendor = "class", items = {
+      { id = 217824, cost = 3000 },
+      { id = 217828, cost = 3000 },
+      { id = 217829, cost = 3000 },
+      { id = 217821, cost = 3000 },
+      { id = 217820, cost = 3000 },
+      { id = 217823, cost = 3000 },
+      { id = 217827, cost = 3000 },
+      { id = 217832, cost = 3000 },
+      { id = 217831, cost = 3000 },
+      { id = 217830, cost = 3000 },
+      { id = 217819, cost = 3000 },
+      { id = 217826, cost = 3000 },
+      { id = 217825, cost = 3000 },
+      { id = 217837, cost = 4000 },
+      { id = 217843, cost = 4000 },
+      { id = 217842, cost = 4000 },
+      { id = 217835, cost = 4000 },
+      { id = 217834, cost = 4000 },
+      { id = 217836, cost = 4000 },
+      { id = 217841, cost = 4000 },
+      { id = 217846, cost = 4000 },
+      { id = 217845, cost = 4000 },
+      { id = 217844, cost = 4000 },
+      { id = 217833, cost = 4000 },
+      { id = 217839, cost = 4000 },
+      { id = 217838, cost = 4000 },
    }},
 }

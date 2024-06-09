@@ -7,7 +7,7 @@
 ---| '"normal"'
 ---| '"heroic"'
 ---| '"bones"'
-
+---| '"class"'
 ---@class LeafNode
 ---@field template string
 ---@field summary any
