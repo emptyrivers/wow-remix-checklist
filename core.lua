@@ -59,7 +59,21 @@ local function hasEnsemble(itemID)
          slotsUnlearned[itemData.invSlot] = nil
       end
    end
-   return next(slotsUnlearned) == nil, count, slots
+   local has = next(slotsUnlearned) == nil
+   if not has then
+      -- check if the tooltip says "Already known"
+      local tooltip = C_TooltipInfo.GetItemByID(itemID)
+      if tooltip then
+         for i = #tooltip.lines, 1, -1 do
+            if tooltip.lines[i].leftText and tooltip.lines[i].leftText:find(ITEM_SPELL_KNOWN, 1, true)
+            or tooltip.lines[i].rightText and tooltip.lines[i].rightText:find(ITEM_SPELL_KNOWN, 1, true) then
+               has = true
+               break
+            end
+         end
+      end   
+   end
+   return has, count, slots
 end
 
 function ns:CreateItems()

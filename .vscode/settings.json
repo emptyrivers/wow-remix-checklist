@@ -11,7 +11,8 @@
     "ITEM_SPELL_KNOWN",
     "TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN",
     "HandleModifiedItemClick",
-    "SetItemRef"
+    "SetItemRef",
+    "DevTool"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field"
