@@ -32,6 +32,29 @@ SlashCmdList["REMIXCHECKLIST"] = function()
    end
 end
 
+local function isAppearanceKnown(sourceID)
+   local isKnown = false
+   if C_TransmogCollection.PlayerHasTransmogItemModifiedAppearance(sourceID) then
+       return true
+   else
+       local sourceInfo = C_TransmogCollection.GetSourceInfo(sourceID)
+       if sourceInfo then
+           local visualID = sourceInfo.visualID
+           local sources = C_TransmogCollection.GetAllAppearanceSources(visualID)
+           for i = 1, #sources do
+               if sourceID ~= sources[i] then
+                   if C_TransmogCollection.PlayerHasTransmogItemModifiedAppearance(sources[i]) then
+                       isKnown = true
+                       break
+                   end
+               end
+           end
+       end
+   end
+
+   return isKnown
+end
+
 ---@return boolean?, number?, number?
 local function hasEnsemble(itemID)
    local setID = C_Item.GetItemLearnTransmogSet(itemID)
@@ -47,7 +70,7 @@ local function hasEnsemble(itemID)
          slotsSeen[itemData.invSlot] = true
          slots = slots + 1
       end
-      if not C_TransmogCollection.PlayerHasTransmogItemModifiedAppearance(itemData.itemModifiedAppearanceID) then
+      if not isAppearanceKnown(itemData.itemModifiedAppearanceID) then
          if not slotsUnlearned[itemData.invSlot] then
             count = count + 1
          end
