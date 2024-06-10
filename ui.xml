@@ -77,7 +77,7 @@
       </Frame>
       <EventFrame
         parentKey="ScrollBar"
-        inherits="MinimalScrollBar"
+        inherits="WowTrimScrollBar"
       >
         <Anchors>
           <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeKey="$parent.ScrollBox"/>
