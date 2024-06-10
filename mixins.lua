@@ -31,11 +31,10 @@ function RemixChecklistFrameMixin:OnLoad()
       frame:Init(node)
    end
 
-   local function CustomFactory(factory, node)
-      factory(node:GetData().template, initializer)
-   end
    
-   self.scrollView:SetElementFactory(CustomFactory)
+   self.scrollView:SetElementFactory(function (factory, node)
+      factory(node:GetData().template, initializer)
+   end)
    
 end
 
