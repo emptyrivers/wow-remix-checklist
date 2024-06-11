@@ -66,20 +66,20 @@ local function hasEnsemble(itemID)
    local slotsSeen = {}
    local slotsUnlearned = {}
    for i, itemData in ipairs(setItems) do
-      if not slotsSeen[itemData.invSlot] then
-         slotsSeen[itemData.invSlot] = true
-         slots = slots + 1
-      end
       if not isAppearanceKnown(itemData.itemModifiedAppearanceID) then
-         if not slotsUnlearned[itemData.invSlot] then
+         if not slotsSeen[itemData.invSlot] then
             count = count + 1
+            slotsUnlearned[itemData.invSlot] = true
          end
-         slotsUnlearned[itemData.invSlot] = true
       else
          if slotsUnlearned[itemData.invSlot] then
             count = count - 1
          end
          slotsUnlearned[itemData.invSlot] = nil
+      end
+      if not slotsSeen[itemData.invSlot] then
+         slotsSeen[itemData.invSlot] = true
+         slots = slots + 1
       end
    end
    local has = next(slotsUnlearned) == nil
@@ -121,6 +121,116 @@ function ns:CreateItems()
       table.insert(self.items, Item:CreateFromItemID(mount.id))
    end
 end
+
+local Datamine = {Transmog={}}
+---@param itemModifiedAppearanceID number
+---@return number invType
+function Datamine.Transmog:GetSlotTypeForAppearanceID(itemModifiedAppearanceID)
+   local sourceInfo = C_TransmogCollection.GetSourceInfo(itemModifiedAppearanceID);
+   
+   return sourceInfo.invType;
+end
+function Datamine.Transmog:GetSlotIDForAppearanceID(itemModifiedAppearanceID)
+   local invType = self:GetSlotTypeForAppearanceID(itemModifiedAppearanceID);
+   local invSlot = C_Transmog.GetSlotForInventoryType(invType);
+   
+   return invSlot;
+end
+---@param transmogSetID number
+---@return table transmogSet
+function Datamine.Transmog:GetAppearancesBySlotForSet(transmogSetID)
+   local transmogSet = {};
+   local setInfo = C_TransmogSets.GetSetInfo(transmogSetID);
+   
+   transmogSet.ID = setInfo.setID;
+   transmogSet.Name = setInfo.name;
+   transmogSet.HiddenUntilCollected = setInfo.hiddenUntilCollected;
+   transmogSet.Appearances = {};
+   transmogSet.Slots = {};
+   transmogSet.Defaults = {};
+   
+   local primaryAppearances = {};
+   for _, v in pairs(C_TransmogSets.GetSetPrimaryAppearances(transmogSetID)) do
+      primaryAppearances[v.appearanceID] = true;
+   end
+   
+   local sources = C_TransmogSets.GetAllSourceIDs(transmogSetID);
+   for _, source in pairs(sources) do
+      local isDefault = primaryAppearances[source] or false;
+      local invSlot = self:GetSlotIDForAppearanceID(source);
+      
+      local category = C_TransmogCollection.GetCategoryForItem(source);
+      local _, isWeapon, _, canMainHand, canOffHand = C_TransmogCollection.GetCategoryInfo(category);
+      
+      transmogSet.Appearances[source] = {
+         have = C_TransmogCollection.PlayerHasTransmogItemModifiedAppearance(source),
+         IsDefault = isDefault,
+         InvSlot = invSlot,
+         IsWeapon = isWeapon,
+         CanMainHand = canMainHand,
+         CanOffhand = canOffHand,
+      };
+      
+      if not transmogSet.Slots[invSlot] then
+         transmogSet.Slots[invSlot] = {};
+      end
+      
+      tinsert(transmogSet.Slots[invSlot], source);
+      
+      if canOffHand then
+         if not transmogSet.Slots[INVSLOT_OFFHAND] then
+            transmogSet.Slots[INVSLOT_OFFHAND] = {};
+         end
+         tinsert(transmogSet.Slots[INVSLOT_OFFHAND], source);
+      end
+      
+      transmogSet.Defaults[source] = isDefault;
+   end
+   
+   return transmogSet;
+end
+-- local itemID = 215187
+-- local print = print
+-- local loader = ContinuableContainer:Create()
+-- loader:AddContinuable(Item:CreateFromItemID(itemID))
+-- loader:ContinueOnLoad(function()
+--       local setID = C_Item.GetItemLearnTransmogSet(itemID)
+--       local slotData = Datamine.Transmog:GetAppearancesBySlotForSet(setID)
+      
+--       local count = 0
+--       local slots = 0
+--       local slotsSeen = {}
+--       local slotsUnlearned = {}
+--       for slot, items in ipairs(slotData.slots) do
+--          if not slotsSeen[slot] then
+--             slotsSeen[slot] = true
+--             slots = slots + 1
+--          end
+--          for _, appearanceID in ipairs(items) do
+            
+--             if slotData.Appearances[appearanceID] and not slotData.Appearances[appearanceID].have then
+--                if not slotsUnlearned[slot] then
+--                   count = count + 1
+--                end
+--                slotsUnlearned[slot] = true
+--             elseif slotData.Appearances[appearanceID] then
+--                if slotsUnlearned[slot] then
+--                   count = count - 1
+--                end
+--                slotsUnlearned[slot] = nil
+--             else
+--                print('unknown appearance ID', appearanceID)
+               
+--             end
+--          end
+         
+--       end
+--    end)
+   
+
+
+
+
 
 ---@param callback function
 function ns:LoadItemData(callback)
