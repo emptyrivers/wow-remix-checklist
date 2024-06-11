@@ -184,6 +184,7 @@ end
 
 ---@class RemixCheckListLeafNodeBaseMixin : Frame
 ---@field itemLink FontString
+---@field icon Texture
 RemixCheckListLeafNodeBaseMixin = {}
 
 function RemixCheckListLeafNodeBaseMixin:OnLoad()
@@ -203,7 +204,7 @@ function RemixCheckListLeafNodeBaseMixin:OnLeave()
 end
 
 function RemixCheckListLeafNodeBaseMixin:Init(node)
-   self.icon:SetTexture(node:GetData().summary.has and "Interface\\AddOns\\RemixCheckList\\assets\\check.png" or "Interface\\AddOns\\RemixCheckList\\assets\\x.png")
+   self.icon:SetAtlas(node:GetData().summary.has and "common-icon-checkmark" or "common-icon-redx")
    self.itemLink:SetText(node:GetData().summary.link)
 end
 
