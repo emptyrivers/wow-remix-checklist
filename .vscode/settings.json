@@ -12,7 +12,8 @@
     "TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN",
     "HandleModifiedItemClick",
     "SetItemRef",
-    "DevTool"
+    "DevTool",
+    "GetClassAtlas"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field"

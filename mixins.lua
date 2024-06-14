@@ -170,15 +170,44 @@ function RemixCheckListCollapseAndExpandButtonMixin:UpdateOrientation()
 end
 
 ---@class RemixCheckListTreeNodeWeaponMixin : RemixCheckListTreeNodeMixin
+---@field lootOn FontString
 RemixCheckListTreeNodeWeaponMixin = {}
 
 function RemixCheckListTreeNodeWeaponMixin:Init(node)
    RemixCheckListTreeNodeMixin.Init(self, node)
-   local _, class = UnitClass("player")
-   if not ns.enum.class_to_equip[class][node:GetData().summary.type] then
+   local _, class, classID = UnitClass("player")
+   local equip = node:GetData().summary.type
+   if not ns.enum.class_to_equip[class][equip] then
       self.title:SetTextColor(1, 0, 0)
+      local t = {}
+      for i = 1, GetNumClasses() do
+         local _, c = GetClassInfo(i)
+         if not ns.enum.class_to_equip[c] then print(c) end
+         if ns.enum.class_to_equip[c][equip] then
+            if #t < 4 then
+               t[#t + 1] = CreateAtlasMarkup(GetClassAtlas(c:lower()))
+            else
+               t[#t+ 1] = "..."
+               break
+            end
+         end
+      end
+      self.lootOn:SetText(table.concat(t))
    else
       self.title:SetTextColor(GameFontNormal:GetTextColor())
+      local t = {}
+      for i = 1, GetNumSpecializationsForClassID(classID) do
+         local id, _, _, icon = GetSpecializationInfoForClassID(classID, i)
+         if ns.enum.spec_can_loot[equip][id] then
+            if #t < 4 then
+               t[#t + 1] = "|T" .. icon .. ":0|t"
+            else
+               t[#t+ 1] = "..."
+               break
+            end
+         end
+      end
+      self.lootOn:SetText(table.concat(t))
    end
 end
 

@@ -55,8 +55,8 @@ local equipName = {
 addon.enum.equipName = equipName
 
 ---@alias class
----| '"DEATH_KNIGHT"'
----| '"DEMON_HUNTER"'
+---| '"DEATHKNIGHT"'
+---| '"DEMONHUNTER"'
 ---| '"DRUID"'
 ---| '"EVOKER"'
 ---| '"HUNTER"'
@@ -72,7 +72,7 @@ addon.enum.equipName = equipName
 -- copilot dreamed up this list, so it's probably extremely wrong
 ---@type table<class,table<equip,true>>
 local class_to_equip = {
-   DEATH_KNIGHT = {
+   DEATHKNIGHT = {
       [equip.PLATE] = true,
       [equip.ONE_H_AXE] = true,
       [equip.TWO_H_AXE] = true,
@@ -82,12 +82,11 @@ local class_to_equip = {
       [equip.TWO_H_MACE] = true,
       [equip.POLEARM] = true,
    },
-   DEMON_HUNTER = {
+   DEMONHUNTER = {
       [equip.LEATHER] = true,
       [equip.ONE_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,
       [equip.FIST] = true,
-      [equip.GLAIVES] = true,
    },
    DRUID = {
       [equip.LEATHER] = true,
@@ -97,26 +96,25 @@ local class_to_equip = {
       [equip.ONE_H_MACE] = true,
       [equip.POLEARM] = true,
       [equip.OFF_HAND] = true,
+      [equip.TWO_H_MACE] = true,
    },
    EVOKER = {
       [equip.CLOTH] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
-      [equip.WAND] = true,
       [equip.OFF_HAND] = true,
+      [equip.ONE_H_AXE] = true,
+      [equip.DAGGER] = true,
+      [equip.FIST] = true,
+      [equip.ONE_H_MACE] = true,
+      [equip.ONE_H_SWORD] = true,
    },
    HUNTER = {
       [equip.MAIL] = true,
       [equip.BOW] = true,
       [equip.GUN] = true,
       [equip.CROSSBOW] = true,
-      [equip.ONE_H_AXE] = true,
-      [equip.ONE_H_SWORD] = true,
-      [equip.DAGGER] = true,
-      [equip.FIST] = true,
       [equip.POLEARM] = true,
-      [equip.TWO_H_AXE] = true,
-      [equip.TWO_H_SWORD] = true,
       [equip.STAFF] = true,
    },
    MAGE = {
@@ -145,9 +143,6 @@ local class_to_equip = {
       [equip.TWO_H_SWORD] = true,
       [equip.ONE_H_MACE] = true,
       [equip.TWO_H_MACE] = true,
-      [equip.STAFF] = true,
-      [equip.DAGGER] = true,
-      [equip.FIST] = true,
       [equip.POLEARM] = true,
       [equip.OFF_HAND] = true,
       [equip.SHIELD] = true,
@@ -172,14 +167,11 @@ local class_to_equip = {
       [equip.MAIL] = true,
       [equip.ONE_H_AXE] = true,
       [equip.TWO_H_AXE] = true,
-      [equip.ONE_H_SWORD] = true,
-      [equip.TWO_H_SWORD] = true,
       [equip.ONE_H_MACE] = true,
       [equip.TWO_H_MACE] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
       [equip.FIST] = true,
-      [equip.POLEARM] = true,
       [equip.OFF_HAND] = true,
       [equip.SHIELD] = true,
    },
@@ -200,13 +192,328 @@ local class_to_equip = {
       [equip.ONE_H_MACE] = true,
       [equip.TWO_H_MACE] = true,
       [equip.STAFF] = true,
-      [equip.DAGGER] = true,
       [equip.FIST] = true,
       [equip.POLEARM] = true,
       [equip.SHIELD] = true,
    },
 }
 addon.enum.class_to_equip = class_to_equip
+
+---@type table<equip,table<number,true>>
+addon.enum.spec_can_loot = {
+   [equip.ONE_H_AXE] = {
+      -- DK
+      [251] = true,
+      -- DH
+      [577] = true,
+      [581] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Monk
+      [268] = true,
+      [269] = true,
+      [270] = true,
+      -- Paladin
+      [65] = true,
+      [66] = true,
+      -- Rogue
+      [260] = true,
+      -- Shaman
+      [262] = true,
+      [263] = true,
+      [264] = true,
+      -- Warrior
+      [72] = true,
+      [73] = true,
+   },
+   [equip.TWO_H_AXE] = {
+      -- DK
+      [250] = true,
+      [251] = true,
+      [252] = true,
+      -- Paladin
+      [65] = true,
+      [70] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warrior
+      [71] = true,
+      [72] = true,
+   },
+   [equip.BOW] = {
+      -- Hunter
+      [253] = true,
+      [254] = true,
+   },
+   [equip.CROSSBOW] = {
+      -- Hunter
+      [253] = true,
+      [254] = true,
+   },
+   [equip.DAGGER] = {
+      -- Druid
+      [102] = true,
+      [105] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Mage
+      [62] = true,
+      [63] = true,
+      [64] = true,
+      -- Priest
+      [256] = true,
+      [257] = true,
+      [258] = true,
+      -- Rogue
+      [259] = true,
+      [261] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warlock
+      [265] = true,
+      [266] = true,
+      [267] = true,
+   },
+   [equip.FIST] = {
+      -- DH
+      [577] = true,
+      [581] = true,
+      -- Druid
+      [102] = true,
+      [105] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Monk
+      [268] = true,
+      [269] = true,
+      [270] = true,
+      -- Rogue
+      [260] = true,
+      -- Shaman
+      [262] = true,
+      [263] = true,
+      [264] = true,
+      -- Warrior
+      [72] = true,
+      [73] = true,
+   },
+   [equip.GUN] = {
+      -- Hunter
+      [253] = true,
+      [254] = true,
+   },
+   [equip.ONE_H_MACE] = {
+      -- DK
+      [251] = true,
+      -- Druid
+      [102] = true,
+      [105] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Monk
+      [268] = true,
+      [269] = true,
+      [270] = true,
+      -- Paladin
+      [65] = true,
+      [66] = true,
+      -- Priest
+      [256] = true,
+      [257] = true,
+      [258] = true,
+      -- Rogue
+      [260] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warrior
+      [72] = true,
+      [73] = true,
+   },
+   [equip.TWO_H_MACE] = {
+      -- DK
+      [250] = true,
+      [251] = true,
+      [252] = true,
+      -- Druid
+      [102] = true,
+      [103] = true,
+      [104] = true,
+      [105] = true,
+      -- Paladin
+      [65] = true,
+      [70] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warrior
+      [71] = true,
+      [72] = true,
+   },
+   [equip.OFF_HAND] = {
+      -- Druid
+      [102] = true,
+      [105] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Mage
+      [62] = true,
+      [63] = true,
+      [64] = true,
+      -- Monk
+      [270] = true,
+      -- Paladin
+      [65] = true,
+      -- Priest
+      [256] = true,
+      [257] = true,
+      [258] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warlock
+      [265] = true,
+      [266] = true,
+      [267] = true,
+   },
+   [equip.POLEARM] = {
+      -- DK
+      [250] = true,
+      [251] = true,
+      [252] = true,
+      -- Druid
+      [102] = true,
+      [103] = true,
+      [104] = true,
+      [105] = true,
+      -- Hunter
+      [255] = true,
+      -- Monk
+      [268] = true,
+      [269] = true,
+      [270] = true,
+      -- Paladin
+      [65] = true,
+      [70] = true,
+      -- Warrior
+      [71] = true,
+      [72] = true,
+   },
+   [equip.SHIELD] = {
+      -- Paladin
+      [65] = true,
+      [66] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warrior
+      [73] = true,
+   },
+   [equip.STAFF] = {
+      -- Druid
+      [102] = true,
+      [103] = true,
+      [104] = true,
+      [105] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Hunter
+      [255] = true,
+      -- Mage
+      [62] = true,
+      [63] = true,
+      [64] = true,
+      -- Monk
+      [268] = true,
+      [269] = true,
+      [270] = true,
+      -- Priest
+      [256] = true,
+      [257] = true,
+      [258] = true,
+      -- Shaman
+      [262] = true,
+      [264] = true,
+      -- Warrior
+      [71] = true,
+      [72] = true,
+      -- Warlock
+      [265] = true,
+      [266] = true,
+      [267] = true,
+   },
+   [equip.ONE_H_SWORD] = {
+      -- DK
+      [251] = true,
+      -- DH
+      [577] = true,
+      [581] = true,
+      -- Evoker
+      [1467] = true,
+      [1468] = true,
+      [1473] = true,
+      -- Mage
+      [62] = true,
+      [63] = true,
+      [64] = true,
+      -- Monk
+      [268] = true,
+      [269] = true,
+      [270] = true,
+      -- Paladin
+      [65] = true,
+      [66] = true,
+      -- Rogue
+      [260] = true,
+      -- Warrior
+      [72] = true,
+      [73] = true,
+      -- Warlock
+      [265] = true,
+      [266] = true,
+      [267] = true,
+   },
+   [equip.TWO_H_SWORD] = {
+      -- DK
+      [250] = true,
+      [251] = true,
+      [252] = true,
+      -- Paladin
+      [65] = true,
+      [70] = true,
+      -- Warrior
+      [71] = true,
+      [72] = true,
+   },
+   [equip.WAND] = {
+      -- Mage
+      [62] = true,
+      [63] = true,
+      [64] = true,
+      -- Priest
+      [256] = true,
+      [257] = true,
+      [258] = true,
+      -- Warlock
+      [265] = true,
+      [266] = true,
+      [267] = true,
+   },
+}
 
 ---@enum loc
 local loc = {
@@ -256,7 +563,7 @@ addon.weapons = {
       { id = 215494, loc = loc.VALE },
       { id = 215495, loc = loc.STEPPES },
       -- shellsplitter
-      [216015] = loc.TOT_N
+      { id = 216015,  loc = loc.TOT_N },
    }},
    { type = equip.TWO_H_AXE, items = {
       -- shin-ka
