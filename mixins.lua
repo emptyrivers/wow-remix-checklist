@@ -17,12 +17,12 @@ function RemixChecklistFrameMixin:OnLoad()
    self.ScrollBox:SetShadowsShown(false)
    ScrollUtil.InitScrollBoxListWithScrollBar(self.ScrollBox, self.ScrollBar, self.scrollView)
    local withBar = {
-      CreateAnchor("TOPLEFT", self, "TOPLEFT", 10, -22),
-      CreateAnchor("BOTTOMRIGHT", self, "BOTTOMRIGHT", -22, 1)
+      CreateAnchor("TOPLEFT", self, "TOPLEFT", 5, -22),
+      CreateAnchor("BOTTOMRIGHT", self, "BOTTOMRIGHT", -27, 1)
    }
    local withoutBar = {
-      CreateAnchor("TOPLEFT", self, "TOPLEFT", 10, -22),
-      CreateAnchor("BOTTOMRIGHT", self, "BOTTOMRIGHT", -2, 1)
+      CreateAnchor("TOPLEFT", self, "TOPLEFT", 5, -22),
+      CreateAnchor("BOTTOMRIGHT", self, "BOTTOMRIGHT", -7, 1)
    }
    ScrollUtil.AddManagedScrollBarVisibilityBehavior(self.ScrollBox, self.ScrollBar, withBar, withoutBar)
    

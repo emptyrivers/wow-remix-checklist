@@ -130,7 +130,7 @@
           wordwrap="false"
         >
           <Anchors>
-            <Anchor point="RIGHT" x="-10" />
+            <Anchor point="RIGHT" x="-5" />
           </Anchors>
         </FontString>
       </Layer>
@@ -184,7 +184,7 @@
           wordwrap="false"
         >
           <Anchors>
-            <Anchor point="RIGHT" x="-10" />
+            <Anchor point="RIGHT" x="-5" />
           </Anchors>
         </FontString>
       </Layer>
@@ -246,7 +246,7 @@
           wordwrap="false"
         >
           <Anchors>
-            <Anchor point="RIGHT" x="-10" />
+            <Anchor point="RIGHT" x="-5" />
           </Anchors>
         </FontString>
       </Layer>
@@ -280,7 +280,7 @@
           wordwrap="false"
         >
           <Anchors>
-            <Anchor point="RIGHT" x="-10" />
+            <Anchor point="RIGHT" x="-5" />
           </Anchors>
         </FontString>
       </Layer>
@@ -314,7 +314,7 @@
           wordwrap="false"
         >
           <Anchors>
-            <Anchor point="RIGHT" x="-10" />
+            <Anchor point="RIGHT" x="-5" />
           </Anchors>
         </FontString>
       </Layer>
@@ -337,7 +337,7 @@
           wordwrap="false"
         >
           <Anchors>
-            <Anchor point="RIGHT" x="-10" />
+            <Anchor point="RIGHT" x="-5" />
           </Anchors>
         </FontString>
       </Layer>

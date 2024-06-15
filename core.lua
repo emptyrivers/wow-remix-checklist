@@ -155,7 +155,8 @@ function ns:LoadItemData(callback)
          table.insert(weaponsNode.children, equipNode)
          for j = 1, #weaponType.items do
             local weapon = weaponType.items[j]
-            local has = C_TransmogCollection.PlayerHasTransmog(weapon.id)
+            local _, sourceID = C_TransmogCollection.GetItemInfo(weapon.id)
+            local has = isAppearanceKnown(sourceID)
             ---@type LeafNode
             local leaf = {
                template = "RemixChecklistLeafNodeWeaponTemplate",
@@ -166,13 +167,15 @@ function ns:LoadItemData(callback)
                }
             }
             table.insert(equipNode.children, leaf)
-            tree.summary.total = tree.summary.total + 1
-            weaponsNode.summary.total = weaponsNode.summary.total + 1
-            equipNode.summary.total = equipNode.summary.total + 1
-            if has then
-               tree.summary.collected = tree.summary.collected + 1
-               weaponsNode.summary.collected = weaponsNode.summary.collected + 1
-               equipNode.summary.collected = equipNode.summary.collected + 1
+            if has or weapon.loc ~= ns.enum.loc.UNKNOWN then
+               tree.summary.total = tree.summary.total + 1
+               weaponsNode.summary.total = weaponsNode.summary.total + 1
+               equipNode.summary.total = equipNode.summary.total + 1
+               if has then
+                  tree.summary.collected = tree.summary.collected + 1
+                  weaponsNode.summary.collected = weaponsNode.summary.collected + 1
+                  equipNode.summary.collected = equipNode.summary.collected + 1
+               end
             end
          end
       end
