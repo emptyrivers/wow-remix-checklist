@@ -234,6 +234,11 @@ end
 
 function RemixCheckListLeafNodeBaseMixin:Init(node)
    self.icon:SetAtlas(node:GetData().summary.has and "common-icon-checkmark" or "common-icon-redx")
+   if node:GetData().summary.loc == ns.enum.loc.UNKNOWN then
+      self.icon:SetDesaturated(true)
+   else
+      self.icon:SetDesaturated(false)
+   end
    self.itemLink:SetText(node:GetData().summary.link)
 end
 
