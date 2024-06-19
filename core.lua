@@ -5,6 +5,7 @@ local name = ...
 
 ---@class ns
 ---@field tree TreeNode
+---@field saved Saved
 local ns = select(2, ...)
 
 ---@type RemixChecklistFrame
@@ -23,14 +24,28 @@ SlashCmdList["REMIXCHECKLIST"] = function()
    DevTool:AddData(RemixChecklistFrame, "RemixChecklistFrame")
    --@end-debug@
    if not ns.loaded then
-      ns:LoadItemData(function()
-         --@debug@
-         DevTool:AddData(ns.tree, "RemixChecklistTree")
-         --@end-debug@
-         RemixChecklistFrame:Populate()
-      end)
+      ns:LoadItemData()
    end
 end
+
+local loader = CreateFrame("frame")
+loader:RegisterEvent("ADDON_LOADED")
+loader:SetScript("OnEvent", function(self, event, addon)
+   if addon == name then
+      self:UnregisterEvent("ADDON_LOADED")
+      if type(RemixCheckListSaved) ~= "table" then
+         RemixCheckListSaved = {}
+      end
+      ns.saved = RemixCheckListSaved
+      if type(ns.saved.version) ~= "number" or ns.saved.version < 1 then
+         ns.saved.version = 1
+         ns.saved.options = {
+            weaponMode = "type",
+         }
+      end
+   end
+end)
+
 
 local function isAppearanceKnown(sourceID)
    local isKnown = false
@@ -90,9 +105,6 @@ function ns:CreateItems()
    self.items = {}
    for i, types in ipairs(ns.weapons) do
       for j, weapon in ipairs(types.items) do
-         if not weapon or not weapon.id then
-            print("Invalid weapon", i, j, weapon and weapon.id)
-         end
          table.insert(self.items, Item:CreateFromItemID(weapon.id))
       end
    end
@@ -109,8 +121,70 @@ function ns:CreateItems()
    end
 end
 
----@param callback function
-function ns:LoadItemData(callback)
+---@type options
+local defaultOptions = {
+   weaponMode = "type",
+   autoPopulate = true,
+}
+
+---@param ... options
+---@return options
+local function orDefault(...)
+   if select("#", ...) == 0 then
+      return defaultOptions
+   end
+   return CreateFromMixins(defaultOptions, ...)
+end
+
+---@param type equip
+---@return boolean
+function ns:IsLootable(type)
+   local _, class = UnitClass("player")
+   return ns.enum.class_to_equip[class][type] ~= nil
+end
+
+---@param type equip
+---@return string
+function ns:GenerateLootString(type)
+   
+   local _, _, classID = UnitClass("player")
+   if not self:IsLootable(type) then
+      local t = {}
+      for i = 1, GetNumClasses() do
+         local _, c = GetClassInfo(i)
+         if ns.enum.class_to_equip[c][type] then
+            if #t < 4 then
+               t[#t + 1] = CreateAtlasMarkup(GetClassAtlas(c:lower()))
+            else
+               t[#t+ 1] = "..."
+               break
+            end
+         end
+      end
+      return table.concat(t)
+   else
+      local t = {}
+      for i = 1, GetNumSpecializationsForClassID(classID) do
+         local id, _, _, icon = GetSpecializationInfoForClassID(classID, i)
+         if ns.enum.spec_can_loot[type][id] then
+            if #t < 4 then
+               t[#t + 1] = "|T" .. icon .. ":0|t"
+            else
+               t[#t+ 1] = "..."
+               break
+            end
+         end
+      end
+      return table.concat(t)
+   end
+end
+
+function ns:ScanForFomo()
+end
+
+---@param opts options?
+function ns:LoadItemData(opts)
+   opts = orDefault(self.saved.options, opts or {})
    self.loaded = true
    if not self.items then
       self:CreateItems()
@@ -126,56 +200,135 @@ function ns:LoadItemData(callback)
             collected = 0,
             total = 0,
             bronze = 0,
+            fomoCollected = 0,
+            fomoTotal = 0,
          },
          children = {}
       }
       local weaponsNode = {
          children = {},
-         template = "RemixChecklistTreeNodeTemplate",
+         template = "RemixChecklistTreeNodeWeaponTopTemplate",
          summary = {
             title = "Weapons",
             collected = 0,
             total = 0,
+            fomoCollected = 0,
+            fomoTotal = 0,
+            mode = opts.weaponMode,
          }
       }
       table.insert(tree.children, weaponsNode)
-      for i = 1, #ns.weapons do
-         local weaponType = ns.weapons[i]
-         ---@type TreeNode
-         local equipNode = {
-            children = {},
-            template = "RemixChecklistTreeNodeWeaponTemplate",
-            summary = {
-               title = ns.enum.equipName[weaponType.type],
-               collected = 0,
-               total = 0,
-               type = weaponType.type,
-            }
-         }
-         table.insert(weaponsNode.children, equipNode)
-         for j = 1, #weaponType.items do
-            local weapon = weaponType.items[j]
-            local _, sourceID = C_TransmogCollection.GetItemInfo(weapon.id)
-            local has = isAppearanceKnown(sourceID)
-            ---@type LeafNode
-            local leaf = {
-               template = "RemixChecklistLeafNodeWeaponTemplate",
+      if opts.weaponMode == "type" then
+         for i = 1, #ns.weapons do
+            local weaponType = ns.weapons[i]
+            ---@type TreeNode
+            local equipNode = {
+               children = {},
+               template = "RemixChecklistTreeNodeWeaponTypeTemplate",
                summary = {
-                  link = select(2, C_Item.GetItemInfo(weapon.id)),
-                  has = has,
-                  loc = weapon.loc,
+                  title = ns.enum.equipName[weaponType.type],
+                  collected = 0,
+                  total = 0,
+                  fomoCollected = 0,
+                  fomoTotal = 0,
+                  type = weaponType.type,
                }
             }
-            table.insert(equipNode.children, leaf)
-            if has or weapon.loc ~= ns.enum.loc.UNKNOWN then
-               tree.summary.total = tree.summary.total + 1
-               weaponsNode.summary.total = weaponsNode.summary.total + 1
-               equipNode.summary.total = equipNode.summary.total + 1
-               if has then
-                  tree.summary.collected = tree.summary.collected + 1
-                  weaponsNode.summary.collected = weaponsNode.summary.collected + 1
-                  equipNode.summary.collected = equipNode.summary.collected + 1
+            table.insert(weaponsNode.children, equipNode)
+            for j = 1, #weaponType.items do
+               local weapon = weaponType.items[j]
+               local _, sourceID = C_TransmogCollection.GetItemInfo(weapon.id)
+               local has = isAppearanceKnown(sourceID)
+               ---@type LeafNode
+               local leaf = {
+                  template = "RemixChecklistLeafNodeWeaponTypeTemplate",
+                  summary = {
+                     link = select(2, C_Item.GetItemInfo(weapon.id)),
+                     has = has,
+                     loc = weapon.loc,
+                     type = weaponType.type,
+                     unobtainable = weapon.loc == ns.enum.loc.UNKNOWN and not has,
+                     fomo = weapon.fomo,
+                  }
+               }
+               table.insert(equipNode.children, leaf)
+               if has or weapon.loc ~= ns.enum.loc.UNKNOWN then
+                  tree.summary.total = tree.summary.total + 1
+                  weaponsNode.summary.total = weaponsNode.summary.total + 1
+                  equipNode.summary.total = equipNode.summary.total + 1
+                  if weapon.fomo then
+                     tree.summary.fomoTotal = tree.summary.fomoTotal + 1
+                     weaponsNode.summary.fomoTotal = weaponsNode.summary.fomoTotal + 1
+                     equipNode.summary.fomoTotal = equipNode.summary.fomoTotal + 1
+                  end
+                  if has then
+                     tree.summary.collected = tree.summary.collected + 1
+                     weaponsNode.summary.collected = weaponsNode.summary.collected + 1
+                     equipNode.summary.collected = equipNode.summary.collected + 1
+                     if weapon.fomo then
+                        tree.summary.fomoCollected = tree.summary.fomoCollected + 1
+                        weaponsNode.summary.fomoCollected = weaponsNode.summary.fomoCollected + 1
+                        equipNode.summary.fomoCollected = equipNode.summary.fomoCollected + 1
+                     end
+                  end
                end
+            end
+         end
+      else
+         local counted = {}
+         for i = 1, #ns.farmLocs do
+            local farmLoc = ns.farmLocs[i]
+            ---@type TreeNode
+            local locNode = {
+               children = {},
+               template = "RemixChecklistTreeNodeWeaponLocTemplate",
+               summary = {
+                  title = farmLoc.loc,
+                  collected = 0,
+                  total = 0,
+               }
+            }
+            table.insert(weaponsNode.children, locNode)
+            for j = 1, #farmLoc.items do
+               local weapon = farmLoc.items[j]
+               local _, sourceID = C_TransmogCollection.GetItemInfo(weapon.id)
+               local has = isAppearanceKnown(sourceID)
+               ---@type LeafNode
+               local leaf = {
+                  template = "RemixChecklistLeafNodeWeaponLocTemplate",
+                  summary = {
+                     link = select(2, C_Item.GetItemInfo(weapon.id)),
+                     has = has,
+                     type = weapon.type,
+                     loc = farmLoc.loc,
+                     unobtainable = (farmLoc.loc == ns.enum.loc.UNKNOWN or not ns:IsLootable(weapon.type)) and not has,
+                     fomo = weapon.fomo
+                  }
+               }
+               table.insert(locNode.children, leaf)
+               if has or farmLoc.loc ~= ns.enum.equip.UNKNOWN then
+                  if not counted[weapon.id] then
+                     tree.summary.total = tree.summary.total + 1
+                     weaponsNode.summary.total = weaponsNode.summary.total + 1
+                  end
+                  locNode.summary.total = locNode.summary.total + 1
+                  if weapon.fomo then
+                     tree.summary.fomoTotal = tree.summary.fomoTotal + 1
+                     weaponsNode.summary.fomoTotal = weaponsNode.summary.fomoTotal + 1
+                  end
+                  if has then
+                     if not counted[weapon.id] then
+                        tree.summary.collected = tree.summary.collected + 1
+                     weaponsNode.summary.collected = weaponsNode.summary.collected + 1
+                     end
+                     locNode.summary.collected = locNode.summary.collected + 1
+                     if weapon.fomo then
+                        tree.summary.fomoCollected = tree.summary.fomoCollected + 1
+                        weaponsNode.summary.fomoCollected = weaponsNode.summary.fomoCollected + 1
+                     end
+                  end
+               end
+               counted[weapon.id] = true
             end
          end
       end
@@ -188,6 +341,8 @@ function ns:LoadItemData(callback)
             collected = 0,
             total = 0,
             bronze = 0,
+            fomoCollected = 0,
+            fomoTotal = 0,
          }
       }
       table.insert(tree.children, appearancesNode)
@@ -202,12 +357,11 @@ function ns:LoadItemData(callback)
                collected = 0,
                total = 0,
                bronze = 0,
+               fomoCollected = 0,
+               fomoTotal = 0,
             }
          }
          table.insert(appearancesNode.children, vendorNode)
-         if vendor.vendor == "bones" then
-            vendorNode.summary.title = "Bones of Mannorroth"
-         end
          for j = 1, #vendor.items do
             local appearance = vendor.items[j]
             ---@type LeafNode
@@ -220,6 +374,7 @@ function ns:LoadItemData(callback)
                      has = C_TransmogCollection.PlayerHasTransmog(appearance.id),
                      bones = appearance.bones,
                      bronze = appearance.cost,
+                     fomo = appearance.fomo,
                   }
                }
             else
@@ -231,7 +386,8 @@ function ns:LoadItemData(callback)
                      has = has,
                      bronze = appearance.cost,
                      haveSlots = slots - remaining,
-                     slots = slots
+                     slots = slots,
+                     fomo = appearance.fomo,
                   }
                }
             end
@@ -239,10 +395,20 @@ function ns:LoadItemData(callback)
             tree.summary.total = tree.summary.total + 1
             appearancesNode.summary.total = appearancesNode.summary.total + 1
             vendorNode.summary.total = vendorNode.summary.total + 1
+            if appearance.fomo then
+               tree.summary.fomoTotal = tree.summary.fomoTotal + 1
+               appearancesNode.summary.fomoTotal = appearancesNode.summary.fomoTotal + 1
+               vendorNode.summary.fomoTotal = vendorNode.summary.fomoTotal + 1
+            end
             if leaf.summary.has then
                tree.summary.collected = tree.summary.collected + 1
                appearancesNode.summary.collected = appearancesNode.summary.collected + 1
                vendorNode.summary.collected = vendorNode.summary.collected + 1
+               if appearance.fomo then
+                  tree.summary.fomoCollected = tree.summary.fomoCollected + 1
+                  appearancesNode.summary.fomoCollected = appearancesNode.summary.fomoCollected + 1
+                  vendorNode.summary.fomoCollected = vendorNode.summary.fomoCollected + 1
+               end
             else
                tree.summary.bronze = tree.summary.bronze + leaf.summary.bronze
                appearancesNode.summary.bronze = appearancesNode.summary.bronze + leaf.summary.bronze
@@ -259,6 +425,8 @@ function ns:LoadItemData(callback)
             collected = 0,
             total = 0,
             bronze = 0,
+            fomoCollected = 0,
+            fomoTotal = 0,
          }
       }
       table.insert(tree.children, toyNode)
@@ -271,14 +439,23 @@ function ns:LoadItemData(callback)
                link = select(2, C_Item.GetItemInfo(toy.id)),
                has = PlayerHasToy(toy.id),
                bronze = toy.cost,
+               fomo = toy.fomo,
             }
          }
          table.insert(toyNode.children, leaf)
          tree.summary.total = tree.summary.total + 1
          toyNode.summary.total = toyNode.summary.total + 1
+         if toy.fomo then
+            tree.summary.fomoTotal = tree.summary.fomoTotal + 1
+            toyNode.summary.fomoTotal = toyNode.summary.fomoTotal + 1
+         end
          if leaf.summary.has then
             tree.summary.collected = tree.summary.collected + 1
             toyNode.summary.collected = toyNode.summary.collected + 1
+            if toy.fomo then
+               tree.summary.fomoCollected = tree.summary.fomoCollected + 1
+               toyNode.summary.fomoCollected = toyNode.summary.fomoCollected + 1
+            end
          else
             tree.summary.bronze = tree.summary.bronze + leaf.summary.bronze
             toyNode.summary.bronze = toyNode.summary.bronze + leaf.summary.bronze
@@ -293,6 +470,8 @@ function ns:LoadItemData(callback)
             collected = 0,
             total = 0,
             bronze = 0,
+            fomoCollected = 0,
+            fomoTotal = 0,
          }
       }
       table.insert(tree.children, mountNode)
@@ -307,14 +486,23 @@ function ns:LoadItemData(callback)
                   link = select(2, C_Item.GetItemInfo(mount.id)),
                   has = select(11, C_MountJournal.GetMountInfoByID(mountID)),
                   bronze = mount.cost,
+                  fomo = mount.fomo,
                }
             }
             table.insert(mountNode.children, leaf)
             tree.summary.total = tree.summary.total + 1
             mountNode.summary.total = mountNode.summary.total + 1
+            if mount.fomo then
+               tree.summary.fomoTotal = tree.summary.fomoTotal + 1
+               mountNode.summary.fomoTotal = mountNode.summary.fomoTotal + 1
+            end
             if leaf.summary.has then
                tree.summary.collected = tree.summary.collected + 1
                mountNode.summary.collected = mountNode.summary.collected + 1
+               if mount.fomo then
+                  tree.summary.fomoCollected = tree.summary.fomoCollected + 1
+                  mountNode.summary.fomoCollected = mountNode.summary.fomoCollected + 1
+               end
             else
                tree.summary.bronze = tree.summary.bronze + leaf.summary.bronze
                mountNode.summary.bronze = mountNode.summary.bronze + leaf.summary.bronze
@@ -322,10 +510,42 @@ function ns:LoadItemData(callback)
          end
       end
       self.tree = tree
-      if callback then
-         callback()
+      if opts.autoPopulate then
+         RemixChecklistFrame:Populate()
       end
    end)
+end
+
+function ns:BuildOptionsMenu()
+   return {
+      {
+         text = "Group Weapons By:",
+         isTitle = true,
+
+      },
+      {
+         text = "Type",
+         func = function()
+            ns.saved.options.weaponMode = "type"
+            ns:LoadItemData()
+         end,
+         checked = ns.saved.options.weaponMode == "type",
+      },
+      {
+         text = "Location",
+         func = function()
+            ns.saved.options.weaponMode = "zone"
+            ns:LoadItemData()
+         end,
+         checked = ns.saved.options.weaponMode == "zone",
+      },
+      {
+         text = "Refresh",
+         func = function()
+            RemixChecklistFrame:Populate()
+         end,
+      }
+   }
 end
 
 --@debug@

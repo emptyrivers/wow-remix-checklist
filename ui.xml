@@ -29,36 +29,47 @@
     <Frames>
       <Button 
         parentKey="CloseButton"
-        inherits="UIButtonTemplate"
-        frameLevel="510"
-        scale="0.1875"
+        inherits="UIPanelCloseButtonDefaultAnchors"
       >
-        <!-- combined with scale, this is 24,24 -->
-        <Size x="128" y="128" />
-        <KeyValues>
-          <KeyValue key="buttonArtKit" value="128-RedButton-Exit" type="string" />
-        </KeyValues>
+        <Size x="22" y="22" />
+      </Button>
+      <Frame
+        name="$parentOptionsMenu"
+        parentKey="OptionsMenu"
+        inherits="UIDropDownMenuTemplate"
+      >
+
+      </Frame>
+      <Button
+        parentKey="OptionsButton"
+        frameLevel="510"
+        mixin="RemixChecklistOptionsButtonMixin"
+      >
+        <NormalTexture atlas="Ui-QuestTrackerButton-Filter" />
+        <PushedTexture atlas="Ui-QuestTrackerButton-Filter-Pressed" />
+        <HighlightTexture atlas="RedButton-Highlight" alphaMode="ADD"/>
+        <DisabledTexture atlas="UI-QuestTrackerButton-Filter" desaturated="true"/>
+        <Size x="22" y="22" />
         <Anchors>
-          <Anchor point="TOPRIGHT" x="-1" />
+          <Anchor point="TOPRIGHT" relativeKey="$parent.CloseButton" relativePoint="TOPLEFT" />
         </Anchors>
         <Scripts>
-          <OnClick>
-            self:GetParent():Hide()
-          </OnClick>
+          <OnClick method="OnClick" />
         </Scripts>
       </Button>
       <Button
         parentKey="RefreshButton"
         inherits="UIButtonTemplate"
         frameLevel="510"
-        scale="0.1875"
+        scale="0.15625"
+        hidden="true"
       >
         <Size x="128" y="128" />
         <KeyValues>
           <KeyValue key="buttonArtKit" value="128-RedButton-Refresh" type="string" />
         </KeyValues>
         <Anchors>
-          <Anchor point="TOPRIGHT" relativePoint="TOPLEFT" relativeKey="$parent.CloseButton"/>
+          <Anchor point="TOPLEFT" x="5" />
         </Anchors>
         <Scripts>
           <OnClick>
@@ -168,9 +179,59 @@
     </Frames>
   </Frame>
 
+  <CheckButton
+    name="RemixChecklistRadioButtonTemplate"
+    mixin="RemixCheckListRadioButtonMixin"
+    virtual="true"
+    parentArray="RemixChecklistRadioButtons"
+  >
+    <KeyValues>
+      <KeyValue key="value" value="" />
+    </KeyValues>
+    <Size x="24" y="24"/>
+    <Anchors>
+      <Anchor point="BOTTOMLEFT" x="-5" y="-5"/>
+    </Anchors>
+    <Scripts>
+      <OnClick>
+        self:GetParent():SetSelectedRadioButton(self)
+      </OnClick>
+    </Scripts>
+    <NormalTexture parentKey="NormalTexture" atlas="common-radiobutton-circle"/>
+    <HighlightTexture parentKey="HighlightTexture" atlas="common-radiobutton-circle" alphaMode="ADD" alpha="0.2"/>
+    <CheckedTexture parentKey="CheckedTexture" atlas="common-radiobutton-dot"/>
+  </CheckButton>
+
+  <!-- templates for all the various scroll rows -->
+
   <Frame
-    name="RemixChecklistTreeNodeWeaponTemplate"
-    mixin="RemixCheckListTreeNodeWeaponMixin"
+    name="RemixChecklistTreeNodeWeaponTopTemplate"
+    mixin="RemixCheckListTreeNodeWeaponTopMixin"
+    inherits="RemixChecklistTreeNodeTemplate"
+    virtual="true"
+  >
+    <Frames>
+      <Button
+        parentKey="weaponMode"
+        inherits="UIPanelButtonNoTooltipTemplate"
+        frameLevel="510"
+        hidden="true"
+      >
+        <Size y="22" x="80" />
+        <Anchors>
+          <Anchor point="RIGHT" x="-5" />
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            self:GetParent():ToggleWeaponMode()
+          </OnClick>
+        </Scripts>
+      </Button>
+    </Frames>
+  </Frame>
+  <Frame
+    name="RemixChecklistTreeNodeWeaponTypeTemplate"
+    mixin="RemixCheckListTreeNodeWeaponTypeMixin"
     inherits="RemixChecklistTreeNodeTemplate"
     virtual="true"
   >
@@ -189,6 +250,29 @@
         </FontString>
       </Layer>
     </Layers>
+  </Frame>
+
+  <Frame
+    name="RemixChecklistTreeNodeWeaponLocTemplate"
+    mixin="RemixCheckListTreeNodeWeaponLocMixin"
+    inherits="RemixChecklistTreeNodeTemplate"
+    virtual="true"
+  >
+    <!-- <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="lootOn"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-5" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers> -->
   </Frame>
 
   <Frame
@@ -322,8 +406,8 @@
   </Frame>
 
   <Frame
-    name="RemixChecklistLeafNodeWeaponTemplate"
-    mixin="RemixCheckListLeafNodeWeaponMixin"
+    name="RemixChecklistLeafNodeWeaponTypeTemplate"
+    mixin="RemixCheckListLeafNodeWeaponTypeMixin"
     inherits="RemixChecklistLeafNodeBaseTemplate"
     virtual="true"
   >
@@ -343,4 +427,28 @@
       </Layer>
     </Layers>
   </Frame>
+
+  <Frame
+    name="RemixChecklistLeafNodeWeaponLocTemplate"
+    mixin="RemixCheckListLeafNodeWeaponLocMixin"
+    inherits="RemixChecklistLeafNodeBaseTemplate"
+    virtual="true"
+  >
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString
+          parentKey="lootOn"
+          font="GameFontNormal"
+          justifyH="RIGHT"
+          justifyV="MIDDLE"
+          wordwrap="false"
+        >
+          <Anchors>
+            <Anchor point="RIGHT" x="-5" />
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+  </Frame>
+
 </Ui>

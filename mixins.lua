@@ -3,7 +3,10 @@
 ---@class ns
 local ns = select(2, ...)
 
----@class RemixChecklistFrame : Frame
+---@class Panel : Frame
+---@field titleContainer Frame
+
+---@class RemixChecklistFrame : Panel
 ---@field ScrollBox Frame
 ---@field ScrollBar Frame
 ---@field CloseButton Button
@@ -39,13 +42,21 @@ function RemixChecklistFrameMixin:OnLoad()
 end
 
 function RemixChecklistFrameMixin:Refresh()
-   ns:LoadItemData(function() self:Populate() end)
+   ns:LoadItemData()
 end
 
 function RemixChecklistFrameMixin:Populate()
    -- todo: maybe someday (next remix season?), consider being more judicious than "eh just yeet everything and start from scratch"
    self.dataProvider:Flush()
-   self:SetTitleFormatted("Remix Checklist - %d/%d collected, %d|T4638724:0|t", ns.tree.summary.collected, ns.tree.summary.total, ns.tree.summary.bronze)
+   local topSummary = ns.tree.summary
+   self:SetTitleFormatted("Remix Checklist - %d/%d (%s%d/%d), %d|T4638724:0|t",
+      topSummary.collected,
+      topSummary.total,
+      CreateAtlasMarkup("ChromieTime-32x32"),
+      topSummary.fomoCollected,
+      topSummary.fomoTotal,
+      topSummary.bronze
+   )
    for _, data in ipairs(ns.tree.children) do
       self.dataProvider:Insert(data)
    end
@@ -59,6 +70,13 @@ end
 
 function RemixChecklistFrameMixin:OnMouseUp()
    self:StopMovingOrSizing()
+end
+
+---@class RemixChecklistOptionsButtonMixin : Button
+RemixChecklistOptionsButtonMixin = {}
+
+function RemixChecklistOptionsButtonMixin:OnClick()
+   EasyMenu(ns:BuildOptionsMenu(), self:GetParent().OptionsMenu, "cursor", 0, 0, "MENU")
 end
 
 ---@class RemixCheckListTreeNodeMixin : Frame
@@ -123,7 +141,7 @@ function RemixCheckListTreeNodeMixin:SetCollapsed(collapsed)
 end
 
 ---@class RemixCheckListCollapseAndExpandButtonMixin : CheckButton
-RemixCheckListCollapseAndExpandButtonMixin = { }
+RemixCheckListCollapseAndExpandButtonMixin = {}
 
 function RemixCheckListCollapseAndExpandButtonMixin:OnLoad()
 	self.orientation = 1
@@ -169,46 +187,40 @@ function RemixCheckListCollapseAndExpandButtonMixin:UpdateOrientation()
 	self:GetPushedTexture():SetRotation(rotation)
 end
 
----@class RemixCheckListTreeNodeWeaponMixin : RemixCheckListTreeNodeMixin
----@field lootOn FontString
-RemixCheckListTreeNodeWeaponMixin = {}
+---@class RemixCheckListTreeNodeWeaponTopMixin : RemixCheckListTreeNodeMixin
+---@field weaponMode Button
+RemixCheckListTreeNodeWeaponTopMixin = {}
 
-function RemixCheckListTreeNodeWeaponMixin:Init(node)
+function RemixCheckListTreeNodeWeaponTopMixin:Init(node)
    RemixCheckListTreeNodeMixin.Init(self, node)
-   local _, class, classID = UnitClass("player")
-   local equip = node:GetData().summary.type
-   if not ns.enum.class_to_equip[class][equip] then
-      self.title:SetTextColor(1, 0, 0)
-      local t = {}
-      for i = 1, GetNumClasses() do
-         local _, c = GetClassInfo(i)
-         if not ns.enum.class_to_equip[c] then print(c) end
-         if ns.enum.class_to_equip[c][equip] then
-            if #t < 4 then
-               t[#t + 1] = CreateAtlasMarkup(GetClassAtlas(c:lower()))
-            else
-               t[#t+ 1] = "..."
-               break
-            end
-         end
-      end
-      self.lootOn:SetText(table.concat(t))
-   else
+   self.weaponMode:SetText(node:GetData().summary.mode == "type" and "By Type" or "By Zone")
+end
+
+function RemixCheckListTreeNodeWeaponTopMixin:ToggleWeaponMode()
+   ns.saved.options.weaponMode = ns.saved.options.weaponMode == "zone" and "type" or "zone"
+   ns:LoadItemData()
+end
+
+---@class RemixCheckListTreeNodeWeaponTypeMixin : RemixCheckListTreeNodeMixin
+---@field lootOn FontString
+RemixCheckListTreeNodeWeaponTypeMixin = {}
+
+function RemixCheckListTreeNodeWeaponTypeMixin:Init(node)
+   RemixCheckListTreeNodeMixin.Init(self, node)
+   self.lootOn:SetText(ns:GenerateLootString(node:GetData().summary.type))
+   if ns:IsLootable(node:GetData().summary.type) then
       self.title:SetTextColor(GameFontNormal:GetTextColor())
-      local t = {}
-      for i = 1, GetNumSpecializationsForClassID(classID) do
-         local id, _, _, icon = GetSpecializationInfoForClassID(classID, i)
-         if ns.enum.spec_can_loot[equip][id] then
-            if #t < 4 then
-               t[#t + 1] = "|T" .. icon .. ":0|t"
-            else
-               t[#t+ 1] = "..."
-               break
-            end
-         end
-      end
-      self.lootOn:SetText(table.concat(t))
+   else
+      self.title:SetTextColor(1, 0, 0)
    end
+end
+
+---@class RemixCheckListTreeNodeWeaponLocMixin : RemixCheckListTreeNodeMixin
+RemixCheckListTreeNodeWeaponLocMixin = {}
+
+function RemixCheckListTreeNodeWeaponLocMixin:Init(node)
+   RemixCheckListTreeNodeMixin.Init(self, node)
+   -- self.lootOn:SetText(node:GetData().summary.lootOn)
 end
 
 ---@class RemixCheckListLeafNodeBaseMixin : Frame
@@ -233,13 +245,14 @@ function RemixCheckListLeafNodeBaseMixin:OnLeave()
 end
 
 function RemixCheckListLeafNodeBaseMixin:Init(node)
-   self.icon:SetAtlas(node:GetData().summary.has and "common-icon-checkmark" or "common-icon-redx")
-   if node:GetData().summary.loc == ns.enum.loc.UNKNOWN then
+   local data = node:GetData()
+   self.icon:SetAtlas(data.summary.has and "common-icon-checkmark" or "common-icon-redx")
+   if data.summary.unobtainable then
       self.icon:SetDesaturated(true)
    else
       self.icon:SetDesaturated(false)
    end
-   self.itemLink:SetText(node:GetData().summary.link)
+   self.itemLink:SetText((data.summary.fomo and CreateAtlasMarkup("ChromieTime-32x32") or "") .. data.summary.link)
 end
 
 function RemixCheckListLeafNodeBaseMixin:OnHyperlinkClick(link, _, button)
@@ -282,9 +295,19 @@ end
 
 ---@class RemixCheckListLeafNodeCurrencyMixin : RemixCheckListLeafNodeBaseMixin
 ---@field location FontString
-RemixCheckListLeafNodeWeaponMixin = {}
+RemixCheckListLeafNodeWeaponTypeMixin = {}
 
-function RemixCheckListLeafNodeWeaponMixin:Init(node)
+function RemixCheckListLeafNodeWeaponTypeMixin:Init(node)
    RemixCheckListLeafNodeBaseMixin.Init(self, node)
    self.location:SetText(node:GetData().summary.loc)
+end
+
+---@class RemixCheckListLeafNodeWeaponLocMixin : RemixCheckListLeafNodeBaseMixin
+---@field lootOn FontString
+RemixCheckListLeafNodeWeaponLocMixin = {}
+
+function RemixCheckListLeafNodeWeaponLocMixin:Init(node)
+   RemixCheckListLeafNodeBaseMixin.Init(self, node)
+   local lootOn = ns:GenerateLootString(node:GetData().summary.type)
+   self.lootOn:SetText(lootOn)
 end

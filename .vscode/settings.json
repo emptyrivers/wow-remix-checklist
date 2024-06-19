@@ -13,7 +13,13 @@
     "HandleModifiedItemClick",
     "SetItemRef",
     "DevTool",
-    "GetClassAtlas"
+    "GetClassAtlas",
+    "class",
+    "FilterComponent",
+    "FilterDropDownSystem",
+    "FILTERS",
+    "FilterDropDown",
+    "EasyMenu"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field"
