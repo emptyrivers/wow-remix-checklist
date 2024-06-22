@@ -19,7 +19,12 @@
     "FilterDropDownSystem",
     "FILTERS",
     "FilterDropDown",
-    "EasyMenu"
+    "EasyMenu",
+    "SecureCapsuleGet",
+    "ipairs_reverse",
+    "DataProviderMixin",
+    "CreateTableEnumerator",
+    "TreeDataProviderMixin"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field"

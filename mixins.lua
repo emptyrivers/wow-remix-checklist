@@ -13,7 +13,7 @@ local ns = select(2, ...)
 RemixChecklistFrameMixin = {}
 
 function RemixChecklistFrameMixin:OnLoad()
-   self.dataProvider = CreateTreeDataProvider()
+   self.dataProvider = ns:CreateFilterableTreeDataProvider()
    self.scrollView = CreateScrollBoxListTreeListView()
    self.dataProvider:CollapseAll()
    self.scrollView:SetDataProvider(self.dataProvider)
@@ -61,6 +61,7 @@ function RemixChecklistFrameMixin:Populate()
       self.dataProvider:Insert(data)
    end
    self.dataProvider:CollapseAll()
+   self.dataProvider:SetFilterPredicate(ns:CreateFilterPredicate())
 end
 
 
@@ -76,7 +77,7 @@ end
 RemixChecklistOptionsButtonMixin = {}
 
 function RemixChecklistOptionsButtonMixin:OnClick()
-   EasyMenu(ns:BuildOptionsMenu(), self:GetParent().OptionsMenu, "cursor", 0, 0, "MENU")
+   EasyMenu(ns:BuildOptionsMenu(), self:GetParent().OptionsMenu, self:GetParent(), 0, 0, "MENU")
 end
 
 ---@class RemixCheckListTreeNodeMixin : Frame

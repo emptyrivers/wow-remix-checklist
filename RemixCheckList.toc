@@ -8,6 +8,8 @@
 ## X-Curse-Project-ID: 1033458
 ## X-Wago-ID: 4N2m3ZGL
 
+
+FilterableTreeDataProvider.lua
 enums.lua
 data.lua
 ui.xml

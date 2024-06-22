@@ -41,6 +41,9 @@ loader:SetScript("OnEvent", function(self, event, addon)
          ns.saved.version = 1
          ns.saved.options = {
             weaponMode = "type",
+            hideCompleted = false,
+            hideNonFOMO = false,
+            hideUnobtainable = false,
          }
       end
    end
@@ -125,6 +128,9 @@ end
 local defaultOptions = {
    weaponMode = "type",
    autoPopulate = true,
+   hideCompleted = false,
+   hideNonFOMO = false,
+   hideUnobtainable = false,
 }
 
 ---@param ... options
@@ -177,9 +183,6 @@ function ns:GenerateLootString(type)
       end
       return table.concat(t)
    end
-end
-
-function ns:ScanForFomo()
 end
 
 ---@param opts options?
@@ -540,12 +543,71 @@ function ns:BuildOptionsMenu()
          checked = ns.saved.options.weaponMode == "zone",
       },
       {
+         text = "Hide Collected",
+         func = function()
+            ns.saved.options.hideCompleted = not ns.saved.options.hideCompleted
+            ns:LoadItemData()
+         end,
+         checked = ns.saved.options.hideCompleted,
+      },
+      {
+         text = "Hide unobtainable",
+         func = function()
+            ns.saved.options.hideUnobtainable = not ns.saved.options.hideUnobtainable
+            ns:LoadItemData()
+         end,
+         checked = ns.saved.options.hideUnobtainable,
+      },
+      {
+         text = "Hide non FOMO items",
+         func = function()
+            ns.saved.options.hideNonFOMO = not ns.saved.options.hideNonFOMO
+            ns:LoadItemData()
+         end,
+         checked = ns.saved.options.hideNonFOMO,
+      },
+      {
+         text = "",
+         isTitle = true,
+      },
+      {
          text = "Refresh",
          func = function()
-            RemixChecklistFrame:Populate()
+            ns:LoadItemData()
          end,
+         justifyH = "CENTER",
       }
    }
+end
+
+function ns:CreateFilterPredicate()
+   local opts = ns.saved.options
+   return function(node)
+      local data = node:GetData()
+      local collected
+      if data.children then
+         collected = data.summary.collected == data.summary.total
+      else
+         collected = data.summary.has
+      end
+      if opts.hideCompleted and collected then
+         return false
+      end
+      local isFomonode
+      if data.children then
+         isFomonode = data.summary.fomoTotal == data.summary.total
+      else
+         isFomonode = data.summary.fomo
+      end
+      if opts.hideNonFOMO and isFomonode then
+         return false
+      end
+
+      if opts.hideUnobtainable and (data.summary.type and not self:IsLootable(data.summary.type) or data.summary.loc == self.enum.loc.UNKNOWN) then
+         return false
+      end
+      return true
+   end
 end
 
 --@debug@

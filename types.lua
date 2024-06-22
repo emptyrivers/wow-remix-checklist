@@ -37,6 +37,9 @@
 
 ---@class options
 ---@field weaponMode 'zone' | 'type'
+---@field hideCompleted boolean
+---@field hideNonFOMO boolean
+---@field hideUnobtainable boolean
 
 ---@class VendorData
 ---@field vendor vendor

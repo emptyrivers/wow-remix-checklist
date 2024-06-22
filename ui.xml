@@ -38,7 +38,10 @@
         parentKey="OptionsMenu"
         inherits="UIDropDownMenuTemplate"
       >
-
+        <KeyValues>
+          <KeyValue key="point" value="TOPLEFT" />
+          <KeyValue key="relativePoint" value="TOPRIGHT" />
+        </KeyValues>
       </Frame>
       <Button
         parentKey="OptionsButton"
