@@ -582,31 +582,29 @@ end
 
 function ns:CreateFilterPredicate()
    local opts = ns.saved.options
+   local function isFiltered(data)
+      if data.children then
+         local filtered = false
+         for i = 1, #data.children do
+            if isFiltered(data.children[i]) then
+               filtered = true
+               break
+            end
+         end
+         return filtered
+      else
+         if opts.hideCompleted and data.summary.has then
+            return false
+         elseif opts.hideNonFOMO and not data.summary.fomo then
+            return false
+         elseif opts.hideUnobtainable and (data.summary.loc == ns.enum.loc.UNKNOWN or data.summary.type and not self:IsLootable(data.summary.type)) then
+            return false
+         end
+         return true
+      end
+   end
    return function(node)
-      local data = node:GetData()
-      local collected
-      if data.children then
-         collected = data.summary.collected == data.summary.total
-      else
-         collected = data.summary.has
-      end
-      if opts.hideCompleted and collected then
-         return false
-      end
-      local isFomonode
-      if data.children then
-         isFomonode = data.summary.fomoTotal == data.summary.total
-      else
-         isFomonode = data.summary.fomo
-      end
-      if opts.hideNonFOMO and isFomonode then
-         return false
-      end
-
-      if opts.hideUnobtainable and (data.summary.type and not self:IsLootable(data.summary.type) or data.summary.loc == self.enum.loc.UNKNOWN) then
-         return false
-      end
-      return true
+      return isFiltered(node:GetData())
    end
 end
 
