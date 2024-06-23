@@ -28,6 +28,28 @@ SlashCmdList["REMIXCHECKLIST"] = function()
    end
 end
 
+if LibStub then
+   local icon = LibStub("LibDBIcon-1.0")
+   local LDB = LibStub("LibDataBroker-1.1")
+   if LDB and icon then
+      local db = LDB:NewDataObject("RemixChecklist", {
+         type = "data source",
+         icon = "interface/targetingframe/unitframeicons",
+         OnClick = function(_, button)
+            SlashCmdList["REMIXCHECKLIST"]()
+         end,
+         OnEnter = function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_NONE")
+            GameTooltip:SetPoint("TOPLEFT", self, "BOTTOMLEFT")
+            GameTooltip:AddLine("Remix Checklist")
+            GameTooltip:Show()
+         end,
+      })
+      ---@diagnostic disable-next-line: missing-fields
+      icon:Register("RemixChecklist", db, { hide = false })
+   end
+end
+
 local loader = CreateFrame("frame")
 loader:RegisterEvent("ADDON_LOADED")
 loader:SetScript("OnEvent", function(self, event, addon)
