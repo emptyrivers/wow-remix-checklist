@@ -29,6 +29,7 @@ local equip = {
    LEATHER = 19,
    MAIL = 20,
    PLATE = 21,
+   COSMETIC = 22,
 }
 ns.enum.equip = equip
 local toEnum = {
@@ -76,6 +77,7 @@ ns.enum.equipName = equipName
 local class_to_equip = {
    DEATHKNIGHT = {
       [equip.PLATE] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.TWO_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,
@@ -86,12 +88,14 @@ local class_to_equip = {
    },
    DEMONHUNTER = {
       [equip.LEATHER] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,
       [equip.FIST] = true,
    },
    DRUID = {
       [equip.LEATHER] = true,
+      [equip.COSMETIC] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
       [equip.FIST] = true,
@@ -102,6 +106,7 @@ local class_to_equip = {
    },
    EVOKER = {
       [equip.CLOTH] = true,
+      [equip.COSMETIC] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
       [equip.WAND] = true,
@@ -114,6 +119,7 @@ local class_to_equip = {
    },
    HUNTER = {
       [equip.MAIL] = true,
+      [equip.COSMETIC] = true,
       [equip.BOW] = true,
       [equip.GUN] = true,
       [equip.CROSSBOW] = true,
@@ -122,6 +128,7 @@ local class_to_equip = {
    },
    MAGE = {
       [equip.CLOTH] = true,
+      [equip.COSMETIC] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
       [equip.ONE_H_SWORD] = true,
@@ -130,6 +137,7 @@ local class_to_equip = {
    },
    MONK = {
       [equip.LEATHER] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,
       [equip.ONE_H_MACE] = true,
@@ -140,6 +148,7 @@ local class_to_equip = {
    },
    PALADIN = {
       [equip.PLATE] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.TWO_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,
@@ -152,6 +161,7 @@ local class_to_equip = {
    },
    PRIEST = {
       [equip.CLOTH] = true,
+      [equip.COSMETIC] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
       [equip.ONE_H_MACE] = true,
@@ -160,6 +170,7 @@ local class_to_equip = {
    },
    ROGUE = {
       [equip.LEATHER] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,
       [equip.ONE_H_MACE] = true,
@@ -168,6 +179,7 @@ local class_to_equip = {
    },
    SHAMAN = {
       [equip.MAIL] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.TWO_H_AXE] = true,
       [equip.ONE_H_MACE] = true,
@@ -180,6 +192,7 @@ local class_to_equip = {
    },
    WARLOCK = {
       [equip.CLOTH] = true,
+      [equip.COSMETIC] = true,
       [equip.STAFF] = true,
       [equip.DAGGER] = true,
       [equip.ONE_H_SWORD] = true,
@@ -188,6 +201,7 @@ local class_to_equip = {
    },
    WARRIOR = {
       [equip.PLATE] = true,
+      [equip.COSMETIC] = true,
       [equip.ONE_H_AXE] = true,
       [equip.TWO_H_AXE] = true,
       [equip.ONE_H_SWORD] = true,

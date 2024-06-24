@@ -427,6 +427,7 @@ function ns:LoadItemData(opts)
                      haveSlots = slots - remaining,
                      slots = slots,
                      fomo = appearance.fomo,
+                     type = appearance.type,
                   }
                }
             end

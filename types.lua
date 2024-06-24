@@ -53,6 +53,7 @@
 ---@field cost cost
 ---@field bones cost?
 ---@field fomo boolean?
+---@field type equip?
 
 ---@class WeaponData
 ---@field id itemID
