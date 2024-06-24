@@ -517,12 +517,12 @@ ns.enum.spec_can_loot = {
 
 ---@enum loc
 local loc = {
-   SOOR = "Siege of Ongrimmar (LFR)",
-   SOON = "Siege of Ongrimmar (Normal)",
-   SOOH = "Siege of Ongrimmar (Heroic)",
-   SOOM = "Siege of Ongrimmar (Mythic)",
-   SOOU = "Siege of Ongrimmar (?)",
-   SOO  = "Siege of Ongrimmar",
+   SOOR = "Siege of Orgrimmar (LFR)",
+   SOON = "Siege of Orgrimmar (Normal)",
+   SOOH = "Siege of Orgrimmar (Heroic)",
+   SOOM = "Siege of Orgrimmar (Mythic)",
+   SOOU = "Siege of Orgrimmar (?)",
+   SOO  = "Siege of Orgrimmar",
    TOTR = "Throne of Thunder (LFR)",
    TOTN = "Throne of Thunder (Normal)",
    TOTH = "Throne of Thunder (Heroic)",
