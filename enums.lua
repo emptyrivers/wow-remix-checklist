@@ -32,23 +32,6 @@ local equip = {
    COSMETIC = 22,
 }
 ns.enum.equip = equip
-local toEnum = {
-   ["Staff"] = equip.STAFF,
-   ["Two-Handed Sword"] = equip.TWO_H_SWORD,
-   ["Dagger"] = equip.DAGGER,
-   ["One-Handed Mace"] = equip.ONE_H_MACE,
-   ["One-Handed Axe"] = equip.ONE_H_AXE,
-   ["Wand"] = equip.WAND,
-   ["Fist Weapon"] = equip.FIST,
-   ["Two-Handed Axe"] = equip.TWO_H_AXE,
-   ["One-Handed Sword"] = equip.ONE_H_SWORD,
-   ["Bow"] = equip.BOW,
-   ["Two-Handed Mace"] = equip.TWO_H_MACE,
-   ["Polearm"] = equip.POLEARM,
-   ["Crossbow"] = equip.CROSSBOW,
-   ["Gun"] = equip.GUN
-}
-
 
 ---@type table<equip,string>
 local equipName = {
