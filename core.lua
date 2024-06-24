@@ -29,6 +29,15 @@ SlashCmdList["REMIXCHECKLIST"] = function()
 end
 
 if LibStub then
+
+   local function getAnchors(frame)
+      local x, y = frame:GetCenter()
+      if not x or not y then return "CENTER" end
+      local hHalf = (x > UIParent:GetWidth()*2/3) and "RIGHT" or (x < UIParent:GetWidth()/3) and "LEFT" or ""
+      local vHalf = (y > UIParent:GetHeight()/2) and "TOP" or "BOTTOM"
+      return vHalf..hHalf, frame, (vHalf == "TOP" and "BOTTOM" or "TOP")..hHalf
+   end
+
    local icon = LibStub("LibDBIcon-1.0")
    local LDB = LibStub("LibDataBroker-1.1")
    if LDB and icon then
@@ -40,9 +49,13 @@ if LibStub then
          end,
          OnEnter = function(self)
             GameTooltip:SetOwner(self, "ANCHOR_NONE")
-            GameTooltip:SetPoint("TOPLEFT", self, "BOTTOMLEFT")
+            GameTooltip:SetPoint(getAnchors(self))
+            GameTooltip:ClearLines()
             GameTooltip:AddLine("Remix Checklist")
             GameTooltip:Show()
+         end,
+         OnLeave = function()
+            GameTooltip:Hide()
          end,
       })
       ---@diagnostic disable-next-line: missing-fields
@@ -89,6 +102,7 @@ local function isAppearanceKnown(sourceID)
                    end
                end
            end
+           
        end
    end
 
@@ -101,29 +115,29 @@ local function hasEnsemble(itemID)
    if not setID then return end
    local setItems = C_Transmog.GetAllSetAppearancesByID(setID)
    if not setItems then return end
-   local count = 0
-   local slots = 0
-   local slotsSeen = {}
-   local slotsUnlearned = {}
+   local appearances = 0
+   local known = 0
+   local seen = {}
    for i, itemData in ipairs(setItems) do
-      if not isAppearanceKnown(itemData.itemModifiedAppearanceID) then
-         if not slotsSeen[itemData.invSlot] then
-            count = count + 1
-            slotsUnlearned[itemData.invSlot] = true
+      local sourceID = itemData.itemModifiedAppearanceID
+      local sourceInfo = C_TransmogCollection.GetSourceInfo(sourceID)
+      if not seen[sourceInfo.visualID] then
+         seen[sourceInfo.visualID] = true
+         appearances = appearances + 1
+         local sources = C_TransmogCollection.GetAllAppearanceSources(sourceInfo.visualID)
+         local has = false
+         for j = 1, #sources do
+            if C_TransmogCollection.PlayerHasTransmogItemModifiedAppearance(sources[j]) then
+               has = true
+               break
+            end
          end
-      else
-         if slotsUnlearned[itemData.invSlot] then
-            count = count - 1
+         if has then
+            known = known + 1
          end
-         slotsUnlearned[itemData.invSlot] = nil
-      end
-      if not slotsSeen[itemData.invSlot] then
-         slotsSeen[itemData.invSlot] = true
-         slots = slots + 1
       end
    end
-   local has = next(slotsUnlearned) == nil
-   return has, count, slots
+   return known == appearances, appearances - known, appearances
 end
 
 function ns:CreateItems()
