@@ -24,6 +24,9 @@
       <OnLoad method="OnLoad" />
       <OnMouseDown method="OnMouseDown" />
       <OnMouseUp method="OnMouseUp" />
+      <OnEvent method="OnEvent" />
+      <OnUpdate method="OnUpdate" />
+      <OnShow method="OnShow" />
     </Scripts>
     <Size x="450" y="300" />
     <Frames>
@@ -207,31 +210,6 @@
 
   <!-- templates for all the various scroll rows -->
 
-  <Frame
-    name="RemixChecklistTreeNodeWeaponTopTemplate"
-    mixin="RemixCheckListTreeNodeWeaponTopMixin"
-    inherits="RemixChecklistTreeNodeTemplate"
-    virtual="true"
-  >
-    <Frames>
-      <Button
-        parentKey="weaponMode"
-        inherits="UIPanelButtonNoTooltipTemplate"
-        frameLevel="510"
-        hidden="true"
-      >
-        <Size y="22" x="80" />
-        <Anchors>
-          <Anchor point="RIGHT" x="-5" />
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            self:GetParent():ToggleWeaponMode()
-          </OnClick>
-        </Scripts>
-      </Button>
-    </Frames>
-  </Frame>
   <Frame
     name="RemixChecklistTreeNodeWeaponTypeTemplate"
     mixin="RemixCheckListTreeNodeWeaponTypeMixin"

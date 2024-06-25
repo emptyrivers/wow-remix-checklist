@@ -41,6 +41,15 @@
 ---@field hideNonFOMO boolean
 ---@field hideUnobtainable boolean
 
+---@class NodeData
+---@field id string | number
+---@field template string
+---@field itemTemplate string?
+---@field data any
+---@field children NodeData[]?
+---@field items ItemData[]?
+---@field itemType itemType?
+
 ---@class VendorData
 ---@field vendor vendor
 ---@field items ItemData[]
@@ -50,18 +59,14 @@
 
 ---@class ItemData
 ---@field id itemID
----@field cost cost
+---@field cost cost?
 ---@field bones cost?
 ---@field fomo boolean?
 ---@field type equip?
-
----@class WeaponData
----@field id itemID
----@field link string
----@field loc loc
----@field fomo boolean?
+---@field itemType itemType?
+---@field loc loc?
 
 ---@class farmLoc
 ---@field loc loc
 ---@field locs loc[]
----@field items {id: number, type: equip}[]
+---@field items ItemData[]

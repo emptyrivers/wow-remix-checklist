@@ -24,7 +24,9 @@
     "ipairs_reverse",
     "DataProviderMixin",
     "CreateTableEnumerator",
-    "TreeDataProviderMixin"
+    "TreeDataProviderMixin",
+    "LinearizedTreeDataProviderMixin",
+    "CallErrorHandler"
   ],
   "Lua.diagnostics.disable": [
     "undefined-field"

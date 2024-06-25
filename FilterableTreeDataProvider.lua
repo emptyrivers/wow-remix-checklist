@@ -32,7 +32,7 @@ local TreeDataProviderConstants = {
 ---@class TreeNode
 ---@field nodes TreeNode[]
 ---@field parent TreeNode?
----@field data any
+---@field data CacheData
 local TreeNodeMixin = {};
 
 local function CreateTreeNode(dataProvider, parent, data)
@@ -43,7 +43,7 @@ end
 
 ---@param dataProvider TreeDataProvider
 ---@param parent TreeNode
----@param data any
+---@param data CacheData
 function TreeNodeMixin:Init(dataProvider, parent, data)
    self.nodes = {};
    self.dataProvider = dataProvider;
@@ -123,17 +123,19 @@ function TreeNodeMixin:Flush()
    self:Invalidate();
 end
 
-function TreeNodeMixin:Insert(data)
+function TreeNodeMixin:Insert(data, skipInvalidation)
    local node = CreateTreeNode(self.dataProvider, self, data);
-   return self:InsertNode(node);
+   return self:InsertNode(node, skipInvalidation);
 end
 
 ---@param node TreeNode
-function TreeNodeMixin:InsertNode(node)
+function TreeNodeMixin:InsertNode(node, skipInvalidation)
    table.insert(self.nodes, node);
-   self:Invalidate();
+   if not skipInvalidation then
+      self:Invalidate();
+      self:Sort();
+   end
 
-   self:Sort();
 
    return node;
 end
@@ -220,12 +222,16 @@ end
 
 ---@param root TreeNode
 ---@param excludeCollapsed boolean?
+---@param filterPredicate (fun(node:TreeNode):boolean)?
 ---@return fun(): integer, TreeNode
-local function EnumerateTreeListNode(root, excludeCollapsed)
+local function EnumerateTreeListNode(root, excludeCollapsed, filterPredicate)
    ---@type TreeNode[]
    local stack = {};
    for _, node in ipairs_reverse(root.nodes) do
-      table.insert(stack, node);
+      ---@cast node TreeNode
+      if not filterPredicate or filterPredicate(node) then
+         table.insert(stack, node);
+      end
    end
 
    local index = 0;
@@ -234,9 +240,11 @@ local function EnumerateTreeListNode(root, excludeCollapsed)
       ---@type TreeNode
       local top = table.remove(stack);
       if top then
-         if not excludeCollapsed or not top.collapsed then
+         if (not excludeCollapsed or not top.collapsed) then
             for _, node in ipairs_reverse(top.nodes) do
-               table.insert(stack, node);
+               if not filterPredicate or filterPredicate(node) then
+                  table.insert(stack, node);
+               end
             end
          end
 
@@ -285,8 +293,8 @@ function TreeDataProviderMixin:IsEmpty()
    return self:GetSize(TreeDataProviderConstants.IncludeCollapsed) == 0;
 end
 
-function TreeDataProviderMixin:Insert(data)
-   return self.node:Insert(data);
+function TreeDataProviderMixin:Insert(data, skipInvalidation)
+   return self.node:Insert(data, skipInvalidation);
 end
 
 function TreeDataProviderMixin:Remove(node)
@@ -537,7 +545,7 @@ local FilterableTreeDataProviderMixin = CreateFromMixins(LinearizedTreeDataProvi
 function FilterableTreeDataProviderMixin:Enumerate(indexBegin, indexEnd, excludeCollapsed)
    assert(excludeCollapsed ~= nil, explicitParameterMsg);
    if excludeCollapsed then
-      return CreateTableEnumerator(self:GetFiltered(), indexBegin, indexEnd);
+      return CreateTableEnumerator(self:GetLinearized(), indexBegin, indexEnd);
    end
    return LinearizedTreeDataProviderMixin.Enumerate(self, indexBegin, indexEnd, excludeCollapsed);
 end
@@ -545,7 +553,7 @@ end
 function FilterableTreeDataProviderMixin:GetSize(excludeCollapsed)
    assert(excludeCollapsed ~= nil, explicitParameterMsg);
    if excludeCollapsed then
-      return #self:GetFiltered();
+      return #self:GetLinearized();
    end
    return LinearizedTreeDataProviderMixin.GetSize(self, excludeCollapsed);
 end
@@ -575,13 +583,11 @@ function FilterableTreeDataProviderMixin:Flush()
    LinearizedTreeDataProviderMixin.Flush(self);
 end
 
-function FilterableTreeDataProviderMixin:GetFiltered()
+function FilterableTreeDataProviderMixin:GetLinearized()
    if not self.filtered then
       local filtered = {};
-      for index, node in ipairs(self:GetLinearized()) do
-         if not self.filterPredicate or self.filterPredicate(node) then
-            table.insert(filtered, node);
-         end
+      for index, node in EnumerateTreeListNode(self.node, TreeDataProviderConstants.ExcludeCollapsed, self.filterPredicate) do
+         table.insert(filtered, node);
       end
       self.filtered = filtered;
    end

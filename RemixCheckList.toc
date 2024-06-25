@@ -12,5 +12,6 @@
 FilterableTreeDataProvider.lua
 enums.lua
 data.lua
+cache.lua
 ui.xml
 core.lua
